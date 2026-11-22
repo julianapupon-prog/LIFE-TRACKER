@@ -13,6 +13,7 @@ I want to stop planning and start doing. The app helps me keep up with my goals 
 - `index.html`: the whole app (HTML + CSS + JS in one file)
 - `data.json`: a copy of my data at the time of the move (also embedded in `index.html`, see "Data")
 - `CLAUDE.md`: this file
+- `supabase/setup.sql`: the database for friends (run once in the Supabase SQL editor; safe to re-run).
 - `manifest.webmanifest`, `sw.js`, `icons/`: make it installable on the phone (PWA) and work offline. The icon is the pixel bunny (made from the same sprite) on pink. `sw.js` loads the page network-first, so changes show up right away. Bump `CACHE` in `sw.js` if the icons change.
 
 ## Design rules (keep these)
@@ -38,6 +39,10 @@ Tabs live at the top, and the URL hash remembers the tab (`#home` (default), `#f
    - When I come back to home after logging something, she celebrates (hearts + "+xp" bubble, or "i grew up!"). Last-seen xp is in `localStorage` key `lifelog-petxp`.
    - "i just…" quick buttons open the existing forms: worked out, studied russian, finished a book, watched something, had an essay idea.
    - Sprites are text grids (`BUN`, `HEART`, `ZED`) with the `PAL` colours; `grid(kind,stage)` makes the sleep / happy / sad faces and adds the bow and scarf.
+
+   - **Friends** (card on home): each device gets a code like `LL-7K2QX` plus a secret (`S.social`, also in backups). Add a friend by code (works both ways), see her bunny, level, stats and when she was last active, send a heart / carrot / flower (shows up on the other's ground for 3 days and she celebrates), and "invite over" (her bunny visits your world for 90 seconds; only on your screen). Only pet info is shared, never books, notes or workouts.
+   - Friends use Supabase through the RPC functions in `supabase/setup.sql` (tables are locked; every function checks the secret). The project URL and publishable key go in `SUPA` in `index.html` (they're meant to be public). Until they're set, the card says friends aren't connected. `localStorage` key `lifelog-supa` can override them for testing.
+   - Bunny colour (white / cream / grey / pink) is picked in the name sheet.
 
 1. **Fitness**
    - "me" card: height, starting weight, goal weight, my goals (text)
@@ -79,7 +84,8 @@ The state is one object:
   notes:  [{id,title,status,body,links,tags,created,updated}],
   ru: { done:{topicId:dateLearned}, days:{'YYYY-MM-DD':{s,r,v,note}} },
   goals: { books, shows },
-  pet: { name, born } }
+  pet: { name, born, color },
+  social: { code, secret } }
 ```
 
 How it saves right now:

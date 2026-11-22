@@ -127,6 +127,15 @@ svg text{font-family:'Pixelify Sans',sans-serif;fill:var(--ink)}
 .pbar i{display:block;height:100%;-webkit-mask:repeating-linear-gradient(90deg,#000 0 8px,transparent 8px 10px);mask:repeating-linear-gradient(90deg,#000 0 8px,transparent 8px 10px)}
 .quick{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .quick button{padding:10px 6px;font-weight:600;background:#fff}
+.friend{display:flex;gap:12px;padding:12px 0;border-top:2px dashed var(--line)}
+.fpic{width:58px;flex:none;align-self:flex-start;background:var(--skyl);border:2px solid var(--ink);padding:5px 4px 3px}
+.fbun{width:100%;display:block}
+.fi{flex:1;min-width:0}
+.fbars{display:flex;gap:4px;margin:5px 0 3px}
+.fbar{flex:1;height:8px;border:2px solid var(--ink);background:#fff}.fbar i{display:block;height:100%}
+.fgifts{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.fgifts button{padding:4px 7px;display:flex;align-items:center}.fgifts .pxi{width:18px;height:18px}
+.fcode{font-family:'Silkscreen',monospace;font-size:20px;letter-spacing:.04em}
 .quick button:nth-child(1){background:var(--pinkl)}.quick button:nth-child(2){background:var(--skyl)}.quick button:nth-child(3){background:#FFF3C4}.quick button:nth-child(4){background:var(--lav)}.quick button:nth-child(5){background:var(--mintl);grid-column:1/-1}
 </style></head><body><div id="app"></div><div id="modal" hidden></div><script type="application/json" id="state">{"v":1,"updated":1795279008281,"fitness":{"height":"","weight":"","goalWeight":"","goals":"","plan":[],"checkins":[{"date":"2026-11-20","workout":"other","did":"i played tennis","weight":"","notes":"","id":"hzry1fjor1"}]},"books":[],"shows":[],"notes":[],"ru":{"done":{},"days":{}},"goals":{"books":50,"shows":70}}</script><script id="appjs">
 (function(){
@@ -143,15 +152,16 @@ var fmt=function(k){if(!k)return'';var p=k.split('-');return (+p[2])+' '+MONTHS[
 var stars=function(n){n=+n||0;var s='';for(var i=1;i<=5;i++)s+=i<=n?'★':'☆';return '<span class="stars">'+s+'</span>'};
 
 /* ---------- state ---------- */
-var DEF={v:1,updated:0,fitness:{height:'',weight:'',goalWeight:'',goals:'',plan:[],checkins:[]},books:[],shows:[],notes:[],ru:{done:{},days:{}},goals:{books:50,shows:70},pet:{name:'',born:''}};
+var DEF={v:1,updated:0,fitness:{height:'',weight:'',goalWeight:'',goals:'',plan:[],checkins:[]},books:[],shows:[],notes:[],ru:{done:{},days:{}},goals:{books:50,shows:70},pet:{name:'',born:'',color:'white'},social:{code:'',secret:''}};
 function norm(o){
   var s=JSON.parse(JSON.stringify(DEF));
   o=o||{};
-  for(var k in o){ if(k!=='fitness'&&k!=='ru'&&k!=='goals'&&k!=='pet') s[k]=o[k]; }
+  for(var k in o){ if(k!=='fitness'&&k!=='ru'&&k!=='goals'&&k!=='pet'&&k!=='social') s[k]=o[k]; }
   s.fitness=Object.assign(s.fitness,o.fitness||{});
   s.ru=Object.assign(s.ru,o.ru||{});
   s.goals=Object.assign(s.goals,o.goals||{});
   s.pet=Object.assign(s.pet,o.pet||{});
+  s.social=Object.assign(s.social,o.social||{});
   return s;
 }
 var S;
@@ -389,13 +399,18 @@ function update(dt){
     if(!sleeping&&now>P.sitUntil&&P.idle>3+Math.random()*4){P.tx=Math.max(90,Math.min(190,P.x+(Math.random()-.5)*70));P.idle=0;}}
   if(P.jump>0)P.jump=Math.max(0,P.jump-dt);
   P.blink-=dt;if(P.blink<-.15)P.blink=2+Math.random()*3;
+  var G=P.guest;
+  if(G){if(now>G.until){P.guest=null;say((G.f.name||'your friend')+' went home. bye! ♥',4000);}
+    else if(Math.abs(G.tx-G.x)>.5){G.x+=(G.tx>G.x?1:-1)*Math.min(Math.abs(G.tx-G.x),30*dt);G.hop+=dt*5;}
+    else{G.hop=0;G.idle+=dt;if(G.idle>2.5+Math.random()*3){G.tx=Math.max(90,Math.min(195,P.x+(Math.random()<.5?-1:1)*(26+Math.random()*24)));G.idle=0;if(Math.random()<.3)burst(2);}}}
+  syncFriends(false);
   P.hearts=P.hearts.filter(function(h){h.life-=dt;h.y-=dt*22;h.x+=h.vx*dt;return h.life>0});
   if(P.msgUntil&&now>P.msgUntil){P.msgUntil=0;if(PS)say(petMessage(PS),0);P.msgUntil=0;}
 }
 function draw(ctx,U,ts){
   var R=function(x,y,w,h,c){ctx.fillStyle=c;var X=Math.round(x*U),Y=Math.round(y*U);ctx.fillRect(X,Y,Math.round((x+w)*U)-X,Math.round((y+h)*U)-Y);};
   var O=function(cx,cy,r,c){for(var y=-r;y<=r;y++){var w=Math.round(Math.sqrt(r*r-y*y));R(cx-w,cy+y,w*2,1,c);}};
-  var SP=function(g,x,y,s){g.forEach(function(row,r){(typeof row==='string'?row.split(''):row).forEach(function(ch,c){if(ch!=='.')R(x+c*s,y+r*s,s,s,PAL[ch])})})};
+  var SP=function(g,x,y,s,pal){pal=pal||PAL;g.forEach(function(row,r){(typeof row==='string'?row.split(''):row).forEach(function(ch,c){if(ch!=='.')R(x+c*s,y+r*s,s,s,pal[ch])})})};
   var night=isNight(),info=PS||{v:{}};
   // sky
   R(0,0,240,52,night?'#2E2A5C':'#9FD8F5');R(0,52,240,30,night?'#3B3770':'#B8E3F8');R(0,82,240,50,night?'#4B4686':'#D6EFFA');
@@ -436,7 +451,12 @@ function draw(ctx,U,ts){
   if(!P.hop&&!P.jump&&Math.floor(ts*1.6)%2)yo+=1;
   var base=170;
   R(P.x-6*s,base-1,12*s,2,'rgba(74,43,79,.18)');
-  SP(grid(kind,stage),P.x-8*s,base-21*s+yo,s);
+  giftItems().forEach(function(it,i){var gg=GIFTS[it.k];if(gg)SP(gg.g,84+i*9,158+(i%2)*6,1.5);});
+  var G=P.guest;
+  if(G){var gs=STAGES[Math.max(0,Math.min(2,G.f.stage|0))].s,gy=G.hop?-Math.abs(Math.sin(G.hop*Math.PI/2))*6:0;
+    R(G.x-6*gs,base-1,12*gs,2,'rgba(74,43,79,.18)');
+    SP(grid(sleeping?'sleep':(now<P.happyUntil||G.f.mood==='happy'?'happy':'idle'),G.f.stage|0),G.x-8*gs,base-21*gs+gy,gs,palFor(G.f.color));}
+  SP(grid(kind,stage),P.x-8*s,base-21*s+yo,s,palFor(S.pet.color));
   if(night){ctx.fillStyle='rgba(40,30,90,.28)';ctx.fillRect(0,0,240*U,180*U);R(54,126,8,8,'#FFE38A');}
   if(sleeping){var zt=ts%3;SP(ZED,P.x+6*s+zt*3,base-21*s-6-zt*6,1.5);}
   P.hearts.forEach(function(h){SP(HEART,h.x,h.y,2);});
@@ -476,6 +496,7 @@ function rHome(){
   h+='<section class="card"><h2 style="margin-bottom:10px">i just…</h2><div class="quick">'+
     [['workout','worked out'],['ru','studied russian'],['book','finished a book'],['show','watched something'],['idea','had an essay idea']].map(function(q){return '<button data-act="quick" data-q="'+q[0]+'">'+q[1]+'</button>'}).join('')+
     '</div></section>';
+  h+='<section class="card" id="friends">'+friendsInner()+'</section>';
   setTimeout(startLoop,0);
   return h;
 }
@@ -491,7 +512,129 @@ function petAct(a){
   P.idle=0;
 }
 function nameModal(){
-  modal('name your bunny',fld('name',inp('name',S.pet.name,'text','mochi, lulu, bun…')),function(){var n=fv('name');if(!n)return false;S.pet.name=n.slice(0,16);save();say('i love it! i\'m '+S.pet.name+' ♥',5000);});
+  modal('your bunny',fld('name',inp('name',S.pet.name,'text','mochi, lulu, bun…'))+fld('colour',sel('color',S.pet.color||'white',[['white','white'],['cream','cream'],['grey','grey'],['pink','pink']])),function(){var n=fv('name');if(!n)return false;S.pet.name=n.slice(0,16);S.pet.color=fv('color')||'white';FR.xp=-1;save();say('i love it! i\'m '+S.pet.name+' ♥',5000);});
+}
+
+/* ---------- friends ---------- */
+/* Friends live in Supabase (see supabase/setup.sql). Only the pet is shared: name, colour,
+   stage, level, xp, stats, mood. Identity = a random code + secret kept in S.social. */
+var SUPA={url:'',key:''};
+try{var so=JSON.parse(localStorage.getItem('lifelog-supa')||'null');if(so&&so.url)SUPA=so;}catch(e){}
+var FR={list:null,at:0,err:'',busy:false,xp:-1};
+var COLORS={white:['#FFFFFF','#E6D9EE'],cream:['#F6DFC4','#E0BC94'],grey:['#DCDCE6','#B9B9CB'],pink:['#FFE0EC','#F7B6CF']};
+var CARROT=['...ll','..ll.','.cc..','ccc..','cc...','c....'];
+var FLOWER=['.f.f.','ffyff','.fff.','..l..','..l..'];
+var GIFTS={heart:{a:'a heart',g:HEART},carrot:{a:'a carrot',g:CARROT},flower:{a:'a flower',g:FLOWER}};
+PAL.c='#FF9F43';PAL.l='#5FBF8A';PAL.f='#C9A7EB';
+function palFor(c){var x=COLORS[c]||COLORS.white,p=Object.assign({},PAL);p.w=x[0];p.g=x[1];return p;}
+function bunSvg(kind,stage,color){
+  var pal=palFor(color),s='<svg class="fbun" viewBox="0 0 16 21" shape-rendering="crispEdges">';
+  grid(kind,stage).forEach(function(row,y){row.forEach(function(ch,x){if(ch!=='.')s+='<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="'+pal[ch]+'"/>'})});
+  return s+'</svg>';
+}
+function social(){
+  if(!S.social.code){
+    var A='ABCDEFGHJKMNPQRSTUVWXYZ23456789',r=new Uint8Array(37),c='',sec='';crypto.getRandomValues(r);
+    for(var i=0;i<5;i++)c+=A[r[i]%A.length];
+    for(var j=5;j<37;j++)sec+=('0'+r[j].toString(16)).slice(-2);
+    S.social={code:'LL-'+c,secret:sec};save();
+  }
+  return S.social;
+}
+function me(extra){var s=social();return Object.assign({p_code:s.code,p_secret:s.secret},extra||{});}
+function rpc(fn,args){
+  var h={'Content-Type':'application/json',apikey:SUPA.key};
+  if(/^eyJ/.test(SUPA.key))h.Authorization='Bearer '+SUPA.key;
+  return fetch(SUPA.url.replace(/\/$/,'')+'/rest/v1/rpc/'+fn,{method:'POST',headers:h,body:JSON.stringify(args)}).then(function(r){
+    return r.text().then(function(t){var d=null;try{d=t?JSON.parse(t):null}catch(e){}
+      if(!r.ok)throw new Error((d&&d.message)||('error '+r.status));return d;});
+  });
+}
+function pushPet(){
+  var ps=PS||petStats();
+  return rpc('save_pet',me({p_pet:{name:S.pet.name||'bunny',color:S.pet.color||'white',stage:ps.stage,level:ps.level,xp:ps.xp,stats:ps.v,mood:ps.avg>=70?'happy':(ps.sad?'sad':'ok')}}));
+}
+function syncFriends(force){
+  if(!SUPA.url||FR.busy||!PS)return;
+  var now=Date.now();if(!force&&PS.xp===FR.xp&&now-FR.at<45000)return;
+  FR.busy=true;FR.at=now;FR.xp=PS.xp;
+  pushPet().then(function(){return rpc('get_friends',me())})
+  .then(function(l){FR.list=l||[];FR.err='';return rpc('get_gifts',me())})
+  .then(function(g){g=g||[];if(!g.length)return;
+    var kept=[];try{kept=JSON.parse(localStorage.getItem('lifelog-gifts')||'[]')}catch(e){}
+    g.forEach(function(x){kept.push({k:x.kind,n:x.name,t:Date.now()})});
+    kept=kept.filter(function(x){return Date.now()-x.t<3*864e5}).slice(-8);
+    try{localStorage.setItem('lifelog-gifts',JSON.stringify(kept))}catch(e){}
+    P.happyUntil=Date.now()+4000;burst(8);
+    var x=g[g.length-1];
+    say(g.length>1?'you got '+g.length+' gifts from friends! ♥':(x.name||'a friend')+' sent you '+GIFTS[x.kind].a+'! ♥',7000);
+  })
+  .catch(function(e){FR.err=String(e.message||e)})
+  .then(function(){FR.busy=false;paintFriends();});
+}
+function giftItems(){var k=[];try{k=JSON.parse(localStorage.getItem('lifelog-gifts')||'[]')}catch(e){}return k.filter(function(x){return Date.now()-x.t<3*864e5});}
+function ago(ts){
+  if(!ts)return '';var d=new Date(ts);d.setHours(0,0,0,0);var n=new Date();n.setHours(0,0,0,0);
+  var days=Math.round((n-d)/864e5);return days<=0?'active today':days===1?'active yesterday':'active '+days+' days ago';
+}
+function friendsInner(){
+  var h='<div class="card-h"><h2>friends</h2>'+(SUPA.url?'<button class="link" data-act="addFriend">+ add</button>':'')+'</div>';
+  if(!SUPA.url)return h+'<div class="muted">friends aren\'t connected yet.</div>';
+  var s=social();
+  h+='<div class="row" style="justify-content:space-between;margin-bottom:6px"><div><span class="lbl">your code</span><div class="fcode">'+esc(s.code)+'</div></div><button data-act="shareCode">share code</button></div>';
+  if(FR.err)h+='<div class="lbl" style="margin:6px 0">couldn\'t reach friends: '+esc(FR.err)+'</div>';
+  if(FR.list==null)return h+'<div class="muted">loading…</div>';
+  if(!FR.list.length)return h+'<div class="empty">no friends yet.<br>send your code to a friend ♥</div>';
+  return h+FR.list.map(function(f){
+    var st=Math.max(0,Math.min(2,f.stage|0)),kind=f.mood==='happy'?'happy':(f.mood==='sad'?'sad':'idle');
+    var bars=Object.keys(f.stats||{}).map(function(k){var d=STATS.filter(function(x){return x.k===k})[0];
+      return '<div class="fbar" title="'+esc(k)+'"><i style="width:'+(+f.stats[k]||0)+'%;background:'+(d?d.col:'#C9A7EB')+'"></i></div>'}).join('');
+    return '<div class="friend"><div class="fpic">'+bunSvg(kind,st,f.color)+'</div><div class="fi">'+
+      '<div class="row" style="justify-content:space-between"><b>'+esc(f.name||'bunny')+'</b><span class="lbl">lv '+(f.level|0)+' · '+STAGES[st].name+'</span></div>'+
+      '<div class="fbars">'+bars+'</div><div class="lbl">'+ago(f.updated_at)+'</div>'+
+      '<div class="fgifts">'+['heart','carrot','flower'].map(function(k){return '<button data-act="gift" data-k="'+k+'" data-id="'+esc(f.code)+'" aria-label="send '+GIFTS[k].a+'">'+pxIcon(GIFTS[k].g.map(function(r){return r.replace(/[^.]/g,'r')}),k==='heart'?'#FF7AA8':k==='carrot'?'#FF9F43':'#C9A7EB')+'</button>'}).join('')+
+      '<button data-act="invite" data-id="'+esc(f.code)+'">invite over</button></div>'+
+      '<button class="link lbl" data-act="unfriend" data-id="'+esc(f.code)+'" style="margin-top:6px;padding:0">remove</button>'+
+    '</div></div>';
+  }).join('');
+}
+function paintFriends(){var el=$('#friends');if(el)el.innerHTML=friendsInner();}
+function friendBy(code){return (FR.list||[]).filter(function(f){return f.code===code})[0];}
+function sendGift(code,kind){
+  var f=friendBy(code);if(!f)return;
+  rpc('send_gift',me({p_to:code,p_kind:kind})).then(function(){burst(3);say('sent '+GIFTS[kind].a+' to '+(f.name||'your friend')+' ♥',4000);})
+  .catch(function(e){say('oops: '+e.message,5000);});
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function invite(code){
+  var f=friendBy(code);if(!f)return;
+  P.guest={f:f,x:205,tx:Math.max(95,P.x-30),hop:0,idle:0,until:Date.now()+90000};
+  P.happyUntil=Date.now()+3000;burst(4);
+  say((f.name||'your friend')+' came over to play! ♥',6000);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function addFriendModal(){
+  modal('add a friend',fld('your friend\'s code',inp('code','','text','LL-XXXXX'))+'<div class="lbl" id="ferr"></div>',function(){
+    var c=fv('code').toUpperCase().replace(/\s/g,'');if(!c)return false;
+    var e=$('#ferr');e.textContent='adding…';
+    pushPet().then(function(){return rpc('add_friend',me({p_friend:c}))}).then(function(r){
+      closeModal();say('yay! '+((r&&r.name)||'your friend')+' is your friend now ♥',6000);burst(6);FR.list=null;render();syncFriends(true);
+    }).catch(function(x){var e2=$('#ferr');if(e2)e2.textContent=x.message;});
+    return false;
+  });
+}
+function unfriendModal(code){
+  var f=friendBy(code);if(!f)return;
+  modal('remove '+(f.name||'friend')+'?','<p style="margin:0">You won\'t see each other\'s bunnies anymore. You can add each other again with your codes.</p>',function(){
+    rpc('remove_friend',me({p_friend:code})).then(function(){FR.list=(FR.list||[]).filter(function(x){return x.code!==code});paintFriends();}).catch(function(e){say('oops: '+e.message,5000)});
+  });
+  var b=$('#mf [type=submit]');if(b)b.textContent='remove';
+}
+function shareCode(){
+  var c=social().code,url=location.href.split('#')[0],text='be my friend on life log ♥ my code is '+c;
+  if(navigator.share){navigator.share({text:text,url:url}).catch(function(){});return;}
+  if(navigator.clipboard)navigator.clipboard.writeText(text+' '+url).then(function(){say('code copied! send it to a friend ♥',4000)}).catch(function(){say('your code is '+c,6000)});
+  else say('your code is '+c,6000);
 }
 
 /* ---------- rendering ---------- */
@@ -776,6 +919,11 @@ document.addEventListener('click',function(e){
     case 'export':exportData();break;
     case 'pet-l':case 'pet-r':case 'pet-u':case 'pet-d':case 'pet-a':case 'pet-b':petAct(act);break;
     case 'petName':nameModal();break;
+    case 'addFriend':addFriendModal();break;
+    case 'shareCode':shareCode();break;
+    case 'gift':sendGift(id,el.getAttribute('data-k'));break;
+    case 'invite':invite(id);break;
+    case 'unfriend':unfriendModal(id);break;
     case 'quick':var q=el.getAttribute('data-q');if(q==='workout')editCheckin();else if(q==='ru')editDay(today());else if(q==='book')editMedia('reading',null,true);else if(q==='show')editMedia('screen',null,true);else editNote();break;
     case 'rf':UI.rf=el.getAttribute('data-v');keepUI();render();break;
   }

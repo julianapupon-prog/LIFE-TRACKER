@@ -30,7 +30,8 @@ self.addEventListener('fetch', function (e) {
   }
 
   if (isPage) {
-    e.respondWith(fetch(req).then(put).catch(function () { return caches.match('index.html'); }));
+    // cache: 'no-cache' asks GitHub for the newest page every time (its own cache lasts 10 minutes)
+    e.respondWith(fetch(req, { cache: 'no-cache' }).then(put).catch(function () { return caches.match('index.html'); }));
   } else {
     e.respondWith(caches.match(req).then(function (hit) { return hit || fetch(req).then(put); }));
   }

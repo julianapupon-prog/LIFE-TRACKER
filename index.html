@@ -241,7 +241,7 @@ var TABS=[['fitness','fitness'],['reading','reading'],['screen','movies & tv'],[
 function tab(){var h=(location.hash||'').slice(1);return TABS.some(function(t){return t[0]===h})?h:'fitness';}
 function render(){
   var t=tab(), d=new Date();
-  var head='<header><div class="grid"></div><div class="hrow"><div><div class="lbl">'+MONTHS[d.getMonth()]+' '+d.getDate()+' · '+d.getFullYear()+'</div><h1>life log.</h1></div><div id="status">'+(ART?'saved ✓':(capDone?'saved on this device':'…'))+'</div></div></header>';
+  var head='<header><div class="grid"></div><div class="hrow"><div><div class="lbl">'+MONTHS[d.getMonth()]+' '+d.getDate()+' · '+d.getFullYear()+'</div><h1>life log.</h1></div><div style="text-align:right"><div id="status">'+(ART?'saved ✓':(capDone?'saved on this device':'…'))+'</div><button class="link lbl" data-act="backup" style="margin-top:4px;padding:0">backup</button></div></div></header>';
   var nav='<nav>'+TABS.map(function(x){return '<a href="#'+x[0]+'" class="'+(x[0]===t?'on':'')+'">'+x[1]+'</a>'}).join('')+'</nav>';
   var body={fitness:rFitness,reading:function(){return rMedia('reading')},screen:function(){return rMedia('screen')},substack:rSubstack,russian:rRussian}[t]();
   $('#app').innerHTML=head+nav+'<main>'+body+'</main>';
@@ -362,10 +362,10 @@ function rRussian(){
 
 /* ---------- modal ---------- */
 var MSAVE=null,MDEL=null,delArm=false;
-function modal(title,body,onSave,onDel){
+function modal(title,body,onSave,onDel,noSave){
   MSAVE=onSave;MDEL=onDel;delArm=false;MODAL=true;
   var m=$('#modal');
-  m.innerHTML='<div class="sheet"><div class="sheet-h"><h2>'+esc(title)+'</h2><button type="button" class="x" data-m="close">×</button></div><form id="mf" autocomplete="off">'+body+'<div class="sheet-f">'+(onDel?'<button type="button" class="danger" data-m="del">delete</button>':'')+'<span style="flex:1"></span><button type="button" data-m="close">cancel</button><button class="primary" type="submit">save</button></div></form></div>';
+  m.innerHTML='<div class="sheet"><div class="sheet-h"><h2>'+esc(title)+'</h2><button type="button" class="x" data-m="close">×</button></div><form id="mf" autocomplete="off">'+body+'<div class="sheet-f">'+(onDel?'<button type="button" class="danger" data-m="del">delete</button>':'')+'<span style="flex:1"></span><button type="button" data-m="close">'+(noSave?'close':'cancel')+'</button>'+(noSave?'':'<button class="primary" type="submit">save</button>')+'</div></form></div>';
   m.hidden=false;document.body.style.overflow='hidden';
 }
 function closeModal(){var m=$('#modal');m.hidden=true;m.innerHTML='';MODAL=false;document.body.style.overflow='';if(dirty)schedule();}
@@ -436,6 +436,52 @@ function editGoal(t){
   modal('goal for this year',fld(M.key==='books'?'books':'movies & shows',inp('g',S.goals[M.goal],'number')),function(){var g=parseInt(fv('g'),10);if(g>0){S.goals[M.goal]=g;save();}});
 }
 
+/* ---------- backup ---------- */
+var LB='lifelog-lastbackup';
+function summary(o){
+  var f=o.fitness||{},n=function(a){return (a||[]).length},ru=o.ru||{};
+  var parts=[[n(f.checkins),'check-in','check-ins'],[n(f.plan),'workout','workouts'],[n(o.books),'book','books'],[n(o.shows),'film or show','films & shows'],[n(o.notes),'note','notes'],[Object.keys(ru.days||{}).length,'russian day','russian days'],[Object.keys(ru.done||{}).length,'topic','topics']];
+  return parts.map(function(p){return p[0]+' '+(p[0]===1?p[1]:p[2])}).join(' · ');
+}
+function backupSheet(){
+  var last=null;try{last=localStorage.getItem(LB)}catch(e){}
+  modal('backup',
+    '<p style="margin:0 0 12px">Everything is saved in this browser only. Download a backup now and then, and use it to move your data to another device.</p>'+
+    '<div class="f"><span class="lbl">on this device</span><div>'+summary(S)+'</div></div>'+
+    '<div class="f"><span class="lbl">last backup</span><div>'+(last?fmt(last):'never')+'</div></div>'+
+    '<button type="button" class="primary big" data-act="export">download backup</button><div style="height:10px"></div>'+
+    '<label class="big" style="display:block;text-align:center;border:1.5px solid var(--blue);border-radius:3px;padding:10px;font-family:\'Nothing You Could Do\',cursive;font-size:22px;cursor:pointer">load a backup<input type="file" id="impf" accept="application/json,.json" hidden></label>',
+    null,null,true);
+  $('#impf').addEventListener('change',function(e){var file=e.target.files[0];if(file)readBackup(file);});
+}
+function exportData(){
+  var name='lifelog-'+today()+'.json',json=JSON.stringify(S,null,2);
+  var done=function(){try{localStorage.setItem(LB,today())}catch(e){}closeModal();render();};
+  var file=null;try{file=new File([json],name,{type:'application/json'})}catch(e){}
+  if(file&&navigator.canShare&&navigator.canShare({files:[file]})&&matchMedia('(pointer:coarse)').matches){
+    navigator.share({files:[file],title:name}).then(done).catch(function(){});return;
+  }
+  var url=URL.createObjectURL(new Blob([json],{type:'application/json'})),a=document.createElement('a');
+  a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url)},1000);
+  done();
+}
+function readBackup(file){
+  var r=new FileReader();
+  r.onload=function(){
+    var o;try{o=JSON.parse(r.result)}catch(e){o=null}
+    if(!o||typeof o!=='object'||!('fitness' in o||'books' in o||'ru' in o)){alert("That file isn't a life log backup.");return;}
+    var when=o.updated?fmt(dkey(new Date(o.updated))):'unknown date';
+    closeModal();
+    modal('load backup?',
+      '<div class="f"><span class="lbl">backup from '+esc(when)+'</span><div>'+summary(o)+'</div></div>'+
+      '<div class="f"><span class="lbl">on this device now</span><div>'+summary(S)+'</div></div>'+
+      '<p style="margin:0">This replaces everything on this device with the backup. Download a backup first if you want to keep what\'s here.</p>',
+      function(){S=norm(o);save();});
+    var b=$('#mf [type=submit]');if(b)b.textContent='replace';
+  };
+  r.readAsText(file);
+}
+
 /* ---------- events ---------- */
 document.addEventListener('click',function(e){
   var m=e.target.closest('[data-m]');
@@ -467,6 +513,8 @@ document.addEventListener('click',function(e){
     case 'ruT':var k=today(),d=S.ru.days[k]||(S.ru.days[k]={}),kk=el.getAttribute('data-k');d[kk]=!d[kk];save();render();break;
     case 'ruDay':editDay(el.getAttribute('data-d'));break;
     case 'cal':UI.cm+=+el.getAttribute('data-d');if(UI.cm<0){UI.cm=11;UI.cy--;}if(UI.cm>11){UI.cm=0;UI.cy++;}keepUI();render();break;
+    case 'backup':backupSheet();break;
+    case 'export':exportData();break;
     case 'rf':UI.rf=el.getAttribute('data-v');keepUI();render();break;
   }
 });

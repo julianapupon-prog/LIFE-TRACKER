@@ -78,6 +78,7 @@ How it saves right now:
 - The state is embedded in the page as `<script type="application/json" id="state">`.
 - On claude.ai, the page saved itself by republishing its own HTML through `claude.use("artifact")`, and uploaded covers through `claude.use("assets")`. **These only exist on claude.ai.**
 - Outside claude.ai those calls are absent, so the app automatically falls back to `localStorage` (key `lifelog-v1`), and covers are stored as small data URLs. That means data lives in one browser on one device only.
+- **Backup:** the "backup" link in the header downloads the whole state as `lifelog-YYYY-MM-DD.json` (on a phone it opens the share sheet), and can load one back. Loading shows a summary and asks before replacing everything. The last backup date is in `localStorage` key `lifelog-lastbackup`.
 
 ## What I'd like next (suggestions, ask me before doing big changes)
 

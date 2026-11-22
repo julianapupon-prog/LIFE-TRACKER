@@ -1,7 +1,8 @@
 // Offline support. The page itself is fetched network-first so updates show up
 // right away; everything else (icons, fonts) is served from cache when possible.
-var CACHE = 'doinstead-v1';
-var CORE = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
+var CACHE = 'doinstead-v2';
+var CORE = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png',
+  'img/envelope.webp', 'img/seal.webp', 'img/letter.webp', 'img/scroll.webp', 'img/lace-edge.webp', 'img/vine.webp'];
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(CORE); }).then(function () { return self.skipWaiting(); }));

@@ -1,6 +1,6 @@
 // Offline support. The page itself is fetched network-first so updates show up
 // right away; everything else (icons, fonts) is served from cache when possible.
-var CACHE = 'lifelog-v4';
+var CACHE = 'lifelog-v5';
 var CORE = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
 
 self.addEventListener('install', function (e) {
@@ -30,7 +30,8 @@ self.addEventListener('fetch', function (e) {
   }
 
   if (isPage) {
-    e.respondWith(fetch(req).then(put).catch(function () { return caches.match('index.html'); }));
+    // cache: 'no-cache' asks GitHub for the newest page every time (its own cache lasts 10 minutes)
+    e.respondWith(fetch(req, { cache: 'no-cache' }).then(put).catch(function () { return caches.match('index.html'); }));
   } else {
     e.respondWith(caches.match(req).then(function (hit) { return hit || fetch(req).then(put); }));
   }

@@ -19,7 +19,7 @@ I want to stop planning and start doing. The app helps me keep up with my goals 
 
 ## Design rules (keep these)
 
-- **Look:** cute pixel-art game, pastel and colourful. References: pixel virtual-pet apps, cosy top-down farming/life games, soft pixel meadows, pastel handheld consoles. Original art only (no copying real games or consoles, no "Game Boy" branding).
+- **Look:** cute pixel-art game, pastel and colourful. References: pixel virtual-pet apps, soft pixel meadows, pastel handheld consoles. Original art only (no copying real games or consoles, no "Game Boy" branding).
 - **Colours:** cream `#FFF4EC` background with a faint pink grid, paper `#FFFDF9` cards, dark plum `#4A2B4F` for text, outlines and hard shadows. Accents: pink `#F7A8C4` / hot pink `#E86A9A`, sky `#9FD8F5`, mint `#A8E6C1`, butter `#FFE38A`, lavender `#E2CDF2`. All defined as CSS variables in `:root`.
 - **Shapes:** square corners, thick plum borders (2–3px), hard offset shadows (no blur), segmented pixel bars.
 - **Fonts (Google Fonts):** **Pixelify Sans** for everything readable (body, headings, buttons; it has Cyrillic). **Silkscreen** for tiny all-caps labels, the bunny's speech bubble and the console text.
@@ -29,33 +29,31 @@ I want to stop planning and start doing. The app helps me keep up with my goals 
 
 ## Tabs and features
 
-Tabs live at the top, and the URL hash remembers the tab (`#home` (default), `#fitness`, `#sleep`, `#reading`, `#screen`, `#substack`, `#russian`).
+Tabs live at the top, and the URL hash remembers the tab (`#home` (default), `#fitness`, `#reading`, `#screen`, `#substack`, `#russian`).
 
-0. **Home: the pet + her world**
-   - A pastel pixel handheld console. The screen is `<canvas id="world">`. Most of the time it shows **the world**: a top-down tile map (`buildMap`, 48×36 tiles of 16px, view 160×120, camera follows her). Painted once to an offscreen canvas (`paintMap`, repaint with `W.dirty=true`), dynamic things are drawn on top every frame (`drawWorld`).
-   - **Places:** my house + farm (8 plots) top-left; a street of 4 friend houses (one per friend, roof in her colour, name on top); a river with bridges; the town plaza (shop, notice board, fountain, benches); the shared garden (fenced, a pot per friend, ball); a lake with a dock (fishing, ducks); a forest (east) and a flower meadow (south-west). Real time of day (night 22:00–7:00: dark, lit windows, fireflies, she sleeps) and a daily weather from `weatherFor(date)` (rain waters crops).
-   - **Keep scenes full and alive** (the look I want, like my reference images): grass in soft patches with tufts and flowers, layered trees with shadows, wobbly path edges, stone ledges on the river, detailed houses (flower boxes, chimney smoke). Decorations are objects added with `D(kind,x,y,w,h,block)` in `buildMap` and drawn in `drawDecor` (barrels, crates, hay, stalls, café table, lamps, bunting, picnic, cattails, boat, logs, mushrooms, big tree, beehive…). Moving life is in `drawAmbient` (smoke, chickens, pigeons, butterflies, birds, falling leaves, jumping fish, bees, sleeping cat, lamp glow). When adding a place, add decorations and some life too.
-   - **Moving:** hold the d-pad (or arrow keys), or tap anywhere to walk there (BFS path in `findPath`). Tapping a thing walks to it and uses it. A (pink, "use") uses what's next to her or pets her; B talks. Walking into a door enters: my house / a friend's house → side-view interiors (`in` / `visitIn`, the old 240×180 scenes with the bookshelf and TV), the shop door opens the shop.
-   - Console pills: **map** (overview with places + live friends; tap to travel), **home**, **bag**.
-   - Pets are 16×21 text-grid sprites in `SPECIES` (bunny / kitty / puppy), drawn at 1× in the world and bigger inside. `grid(kind,stage,species,wear)` makes faces (idle/happy/sad/sleep), bow (kid), scarf (grown), and clothes (`HATS`, glasses).
-   - Customise in "your pet" (tap her name): name, animal, fur colour (`COLORS`), roof colour (`ROOFS`).
-   - **Stats** (`petStats`, computed from real data, nothing stored): health (workouts), joy (finished books & films), smart (Russian), ideas (Substack notes), rest (sleep). Points fade 18%/day; never below 8; she's sad when the average < 30. XP = all points; level every 20; baby → kid (60) → grown (250). Hidden tabs drop their stat.
-   - **Game economy** (`S.game`): logging real things pays out once each (`claimRewards`): workout 3 water + 5 coins, finished book 15 coins + 2 seeds, film 8 coins + seed, each Russian toggle 1 water + 3 coins, Russian topic 1 coin, note 5 coins + seed (published +20 + seed), sleep 2 water + 3 coins (+ seed for 7–9.5h). Starter pack on first run; existing data doesn't pay retroactively.
-   - **Farm:** 6 crops in `CROPS` (seed price, days, sell price). Plant from the bag of seeds, water once a day (costs 1 water; rain counts), grows one stage per watered day, harvest → items. **Forage:** 12 daily spawns in forest/meadow/lake shore (`forageToday`). **Fishing:** at the dock, 6 casts a day; tap/A when the "!" shows. Items can be fed to her (bag) or sold (shop).
-   - **Shop:** seeds, clothes (`WEARS`), furniture (`FURN`: rug, plant, lamp, poster to buy; armchair / yoga mat / matryoshka / typewriter unlocked by milestones). Furniture shows in my interior.
-   - **Missions:** 2 a day (`todaysMissions`): one real-life (from shown tabs) + one game task, +10 coins + seed each. Shown on home ("today") and the town board. **This week** card + the mailbox letter summarise the last 7 days.
-   - She celebrates when I come back after logging (`lifelog-petxp` in localStorage), with the rewards in the bubble.
-   - **Friends:** see the Friends bullets below; in the world, friends who aren't online hang out in the garden; online friends walk around live.
-   - `window.__ll` exposes `P`, `W`, `G()`, `S()` for debugging and tests.
+0. **Home (the pet)**
+   - A pastel pixel handheld console. The screen is a `<canvas id="world">` (240×180 logical pixels): sky, mountains, house, tree, grass. Real time of day: from 22:00 to 7:00 it's night and she sleeps (any button wakes her for a bit).
+   - Customise in the "your pet" sheet (tap her name): name, animal (bunny / kitty / puppy), fur colour (9 options in `COLORS`), house roof colour (`ROOFS`). Sprites are text grids in `SPECIES`; all three share the same body rows and eye rows so the faces, bow and scarf work for every animal.
+   - **Scenes** (`P.scene`), switched by tapping things in the world or the home / inside / garden pills on the console, with an iris transition:
+     - `out`: outside her house. Tap the house to go in, the signpost to go to the garden.
+     - `in`: inside. Bookshelf with a spine per finished book (tap = list of finished books), TV rack with a case per finished film/show (tap = list), bed (nap), door (back out).
+     - `garden`: the shared garden. Friends' pets wander here; swing, bench, pond, a ball you kick to each other, and one shared plant pot per friend (see Friends).
+     - `visit` / `visitIn`: a friend's house, outside and inside, with her roof colour and her pet. Her shelf and TV show counts only.
+   - Tapping the world uses hotspots registered while drawing (`P.hot`); anything else pets her.
+   - **Keep it simple.** A big explorable top-down world (map, farm, fishing, missions…) was tried and removed on purpose: I prefer these few scenes (my house outside/inside, the shared garden, a friend's house). Don't bring the big world back unless I ask.
+   - **Coins + shop** (`S.game`): every logged thing pays coins once (`claimRewards`): workout 5, finished book 15, finished film/show 8, each Russian toggle 3, Russian topic 1, note 5, published essay +20. Starts with 30; existing data doesn't pay retroactively. The coin count is on the console. The **shop** pill sells clothes (`WEARS`: hats via `HATS`, glasses; worn on the sprite by `grid(kind,stage,species,wear)`, tap again to take off) and decor for the house (`FURN`, drawn at the end of `drawInside`). Friends see her clothes and her decor when visiting.
+   - Controls: d-pad left/right walks, up jumps, down sits. A (pink) or tapping the screen = pet her (hearts). B (blue) = talk (a tip based on her lowest stat). Tap her name to rename.
+   - Four stats, computed from my real data in `petStats()`, nothing stored: **health** (workouts), **joy** (finished books & films), **smart** (Russian days + topics), **ideas** (Substack notes). Each logged thing gives points that fade by 18% per day, so stats drop if I stop. Gentle: stats never go below 8, she never gets sick or dies, she just gets sad (short ears) when the average is under 30.
+   - XP = all points ever. Level every 20 xp. Grows from **baby** → **kid** (60 xp, gets a bow, bigger) → **grown** (250 xp, pink scarf, biggest).
+   - World reflects progress: a flower per Russian study day this month, a stack of books by the door for books finished this year.
+   - When I come back to home after logging something, she celebrates (hearts + "+xp" bubble, or "i grew up!"). Last-seen xp is in `localStorage` key `lifelog-petxp`.
+   - "i just…" quick buttons open the existing forms: worked out, studied russian, finished a book, watched something, had an essay idea.
+   - Sprites are text grids (`BUN`, `HEART`, `ZED`) with the `PAL` colours; `grid(kind,stage)` makes the sleep / happy / sad faces and adds the bow and scarf.
 
-   - **Shared plant:** each pair of friends has a pot in the garden. Each of you can water it once a day; it grows one step (7 stages) on each day you *both* watered it (`water_plant` on the server).
-   - **Friends** (card on home): each device gets a code like `LL-7K2QX` plus a secret (`S.social`, also in backups). Add by code (both ways). The card shows her pet, level, stats, "● playing now" or last active, this week's **challenge together** (`CHALLENGES`, picked per week, progress from both; +30 coins + 2 seeds when both finish), **book club** (books marked "book club" in reading are shared by title; same book = bonus), gifts (heart / carrot / flower), and "visit her house" / "go see her".
-   - Shared with friends: pet info + `home` (roof, finished counts, this week's counts, hidden tabs, book-club titles, clothes, furniture). Never notes, workouts, reviews or other titles.
-   - **Live:** Supabase Realtime broadcast (supabase-js loaded from jsdelivr only when friends are on), one channel per pair of friends. Each side sends its position ~5×/s while moving; positions on someone's own plot are re-mapped to that friend's house slot (`myArea` / `placePeer`). Emotes (hearts, hi) are broadcast too.
-   - Supabase: RPC functions in `supabase/setup.sql` (tables locked; every function checks the secret). URL + publishable key in `SUPA` in `index.html` (meant to be public). `localStorage` key `lifelog-supa` overrides them for testing.
-
-1. **Sleep**
-   - Log a night: woke-up date, bed time, wake time, notes. Last night, 7-day average, bars for the last 7 nights, list (tap to edit).
+   - **Shared plant:** each pair of friends has a pot in the garden. Each of you can water it once a day; it grows one step (seed → sprout → … → little tree, 7 stages) on each day you *both* watered it. Server side in `water_plant`.
+   - **Friends** (card on home): each device gets a code like `LL-7K2QX` plus a secret (`S.social`, also in backups). Add a friend by code (works both ways), see her bunny, level, stats and when she was last active, send a heart / carrot / flower (shows up on the other's ground for 3 days and she celebrates), and "invite over" (her pet visits your world for 90 seconds; only on your screen), and "visit her house". Only pet info is shared, plus counts of finished books/films and her roof colour (`home`), never titles. Only pet info is shared, never books, notes or workouts.
+   - **Live:** when we're in the same place at the same time (the garden, or either house outside/inside: `myLoc()`), we see each other move in real time, with hearts when someone pets. Supabase Realtime broadcast, one channel per pair of friends; supabase-js is loaded from jsdelivr only when friends are on. The card shows "● here now · in the garden / at her house / at your house" and "go to her ♥". Friends who aren't online appear as before (garden / her house).
+   - Friends use Supabase through the RPC functions in `supabase/setup.sql` (tables are locked; every function checks the secret). The project URL and publishable key go in `SUPA` in `index.html` (they're meant to be public). Until they're set, the card says friends aren't connected. `localStorage` key `lifelog-supa` can override them for testing.
 
 1. **Fitness**
    - "me" card: height, starting weight, goal weight, my goals (text)
@@ -92,7 +90,7 @@ The state is one object:
 ```
 { v, updated,
   fitness: { height, weight, goalWeight, goals, plan:[{id,name,items}], checkins:[{id,date,workout,did,weight,notes}] },
-  books:  [{id,title,author,cover,status:'reading'|'wish'|'done',finish,rating,review,added,club}],
+  books:  [{id,title,author,cover,status:'reading'|'wish'|'done',finish,rating,review,added}],
   shows:  [{id,title,kind,where,cover,status:'watching'|'wish'|'done',finish,rating,review,added}],
   notes:  [{id,title,status,body,links,tags,created,updated}],
   ru: { done:{topicId:dateLearned}, days:{'YYYY-MM-DD':{s,r,v,note}} },
@@ -100,8 +98,7 @@ The state is one object:
   pet: { name, born, color, species, roof },
   social: { code, secret },
   prefs: { hidden: [tab ids] },
-  sleep: [{id,date,bed,wake,notes}],
-  game: { init, coins, water, seeds:{crop:n}, inv:{item:n}, crops:{plot:{k,planted,w:[dates]}}, claimed:{rewardKey:1}, picked:{date:[ids]}, casts:{d,n}, owned:{wear:1}, wear:{head,face}, furn:{item:1}, wateredOn, caughtOn, gardenOn } }
+  game: { init, coins, owned:{wear:1}, wear:{head,face}, furn:{item:1}, claimed:{rewardKey:1} } }
 ```
 
 How it saves right now:
@@ -113,9 +110,8 @@ How it saves right now:
 
 ## What I'd like next (ask me before doing big changes)
 
-- Reminders: a daily push notification from the pet (needs a small server, e.g. a Supabase Edge Function + scheduled job)
 - Sync my data across phone and laptop (Supabase is already set up)
-- More garden activities with friends (seesaw, picnic), more places to explore
+- Maybe a daily reminder from the pet
 - Add my training plan to the fitness tab once I send it
 - Keep it light: no heavy frameworks unless there's a real reason
 

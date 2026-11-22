@@ -92,14 +92,16 @@ The state is one object:
   ru: { done:{topicId:dateLearned}, days:{'YYYY-MM-DD':{s,r,v,note}} },
   goals: { books, shows },
   pet: { name, born, color, species, roof },
-  social: { code, secret } }
+  social: { code, secret },
+  prefs: { hidden: [tab ids] } }
 ```
 
 How it saves right now:
 - The state is embedded in the page as `<script type="application/json" id="state">`.
 - On claude.ai, the page saved itself by republishing its own HTML through `claude.use("artifact")`, and uploaded covers through `claude.use("assets")`. **These only exist on claude.ai.**
 - Outside claude.ai those calls are absent, so the app automatically falls back to `localStorage` (key `lifelog-v1`), and covers are stored as small data URLs. That means data lives in one browser on one device only.
-- **Backup:** the "backup" link in the header downloads the whole state as `lifelog-YYYY-MM-DD.json` (on a phone it opens the share sheet), and can load one back. Loading shows a summary and asks before replacing everything. The last backup date is in `localStorage` key `lifelog-lastbackup`.
+- **Settings** (link in the header): show/hide tabs (`prefs.hidden`). A hidden tab also drops its pet stat (`STAT_TABS`) and its "i just…" button, so the pet isn't sad about things you don't track; nothing is deleted. If Russian is hidden, the garden flowers count workout days instead.
+- **Backup** (in settings): downloads the whole state as `lifelog-YYYY-MM-DD.json` (on a phone it opens the share sheet), and can load one back. Loading shows a summary and asks before replacing everything. The last backup date is in `localStorage` key `lifelog-lastbackup`.
 
 ## What I'd like next (suggestions, ask me before doing big changes)
 

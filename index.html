@@ -158,16 +158,17 @@ var fmt=function(k){if(!k)return'';var p=k.split('-');return (+p[2])+' '+MONTHS[
 var stars=function(n){n=+n||0;var s='';for(var i=1;i<=5;i++)s+=i<=n?'★':'☆';return '<span class="stars">'+s+'</span>'};
 
 /* ---------- state ---------- */
-var DEF={v:1,updated:0,fitness:{height:'',weight:'',goalWeight:'',goals:'',plan:[],checkins:[]},books:[],shows:[],notes:[],ru:{done:{},days:{}},goals:{books:50,shows:70},pet:{name:'',born:'',color:'white',species:'bunny',roof:'pink'},social:{code:'',secret:''}};
+var DEF={v:1,updated:0,fitness:{height:'',weight:'',goalWeight:'',goals:'',plan:[],checkins:[]},books:[],shows:[],notes:[],ru:{done:{},days:{}},goals:{books:50,shows:70},prefs:{hidden:[]},pet:{name:'',born:'',color:'white',species:'bunny',roof:'pink'},social:{code:'',secret:''}};
 function norm(o){
   var s=JSON.parse(JSON.stringify(DEF));
   o=o||{};
-  for(var k in o){ if(k!=='fitness'&&k!=='ru'&&k!=='goals'&&k!=='pet'&&k!=='social') s[k]=o[k]; }
+  for(var k in o){ if(k!=='fitness'&&k!=='ru'&&k!=='goals'&&k!=='pet'&&k!=='social'&&k!=='prefs') s[k]=o[k]; }
   s.fitness=Object.assign(s.fitness,o.fitness||{});
   s.ru=Object.assign(s.ru,o.ru||{});
   s.goals=Object.assign(s.goals,o.goals||{});
   s.pet=Object.assign(s.pet,o.pet||{});
   s.social=Object.assign(s.social,o.social||{});
+  s.prefs=Object.assign(s.prefs,o.prefs||{});if(!Array.isArray(s.prefs.hidden))s.prefs.hidden=[];
   return s;
 }
 var S;
@@ -360,6 +361,9 @@ var STATS=[
   {k:'smart',label:'smart',hint:'русский',col:'#5BB4E8',K:3.2,icon:['..rrr..','.rrrrr.','rrrrrrr','rrrrrrr','.rrrrr.','..r.r..','..rrr..']},
   {k:'ideas',label:'ideas',hint:'substack',col:'#5FBF8A',K:10,icon:['.....rr','....rrr','...rrr.','..rrr..','.rrr...','rr.....','r......']}
 ];
+var STAT_TABS={health:['fitness'],joy:['reading','screen'],smart:['russian'],ideas:['substack']};
+function shown(t){return S.prefs.hidden.indexOf(t)<0;}
+function activeStats(){var a=STATS.filter(function(s){return STAT_TABS[s.k].some(shown)});return a.length?a:STATS.slice(0,1);}
 function pxIcon(grid,col){
   var h=grid.length,w=grid[0].length,s='<svg class="pxi" viewBox="0 0 '+w+' '+h+'" shape-rendering="crispEdges">';
   grid.forEach(function(row,y){row.split('').forEach(function(ch,x){if(ch!=='.')s+='<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="'+col+'"/>'})});
@@ -380,16 +384,18 @@ function petStats(){
   Object.keys(S.ru.done).forEach(function(id){add('smart',1,S.ru.done[id])});
   S.notes.forEach(function(n){if(n.updated)add('ideas',n.status==='published'?20:5,dkey(new Date(n.updated)))});
   var out={xp:xp,v:{}},sum=0;
-  STATS.forEach(function(s){var v=Math.max(8,Math.min(100,Math.round(sc[s.k]*s.K)));out.v[s.k]=v;sum+=v;});
-  out.avg=sum/STATS.length;
+  var act=activeStats();
+  act.forEach(function(s){var v=Math.max(8,Math.min(100,Math.round(sc[s.k]*s.K)));out.v[s.k]=v;sum+=v;});
+  out.avg=sum/act.length;
   var st=0;STAGES.forEach(function(x,i){if(xp>=x.xp)st=i});out.stage=st;
   out.level=1+Math.floor(xp/20);out.lvXp=xp%20;
-  var low=STATS.slice().sort(function(a,b){return out.v[a.k]-out.v[b.k]})[0];out.low=low.k;
+  var low=act.slice().sort(function(a,b){return out.v[a.k]-out.v[b.k]})[0];out.low=low.k;
   var born=S.pet.born||today(),bd=born.split('-');
   out.newborn=(new Date()-new Date(+bd[0],+bd[1]-1,+bd[2]))<2*864e5;
   out.sad=out.avg<30&&!out.newborn;
   var mo=today().slice(0,7),yr=today().slice(0,4);
-  out.flowers=Object.keys(S.ru.days).filter(function(k){return k.slice(0,7)===mo&&dayLv(k)}).length;
+  out.flowers=shown('russian')?Object.keys(S.ru.days).filter(function(k){return k.slice(0,7)===mo&&dayLv(k)}).length
+    :S.fitness.checkins.map(function(c){return c.date}).filter(function(k,i,a){return k&&k.slice(0,7)===mo&&a.indexOf(k)===i}).length;
   out.booksYear=S.books.filter(function(b){return b.status==='done'&&(b.finish||'').slice(0,4)===yr}).length;
   out.books=S.books.filter(function(b){return b.status==='done'}).length;
   out.films=S.shows.filter(function(b){return b.status==='done'}).length;
@@ -754,10 +760,10 @@ function rHome(){
     '<div class="grille"></div>'+
   '</div>';
   h+='<section class="card"><div class="card-h"><h2>how she\'s doing</h2><span class="lbl">'+ps.xp+' xp</span></div>'+
-    STATS.map(function(s){return '<div class="pstat">'+pxIcon(s.icon,s.col)+'<div class="pst"><div class="row" style="justify-content:space-between"><span>'+s.label+'</span><span class="lbl">'+s.hint+'</span></div><div class="pbar"><i style="width:'+ps.v[s.k]+'%;background:'+s.col+'"></i></div></div></div>'}).join('')+
+    activeStats().map(function(s){return '<div class="pstat">'+pxIcon(s.icon,s.col)+'<div class="pst"><div class="row" style="justify-content:space-between"><span>'+s.label+'</span><span class="lbl">'+s.hint+'</span></div><div class="pbar"><i style="width:'+ps.v[s.k]+'%;background:'+s.col+'"></i></div></div></div>'}).join('')+
     '<div class="lbl" style="margin-top:10px">level '+(ps.level+1)+' in '+(20-ps.lvXp)+' xp'+(next?' · grows into a '+next.name+' at '+next.xp+' xp':' · all grown up ♥')+'</div></section>';
   h+='<section class="card"><h2 style="margin-bottom:10px">i just…</h2><div class="quick">'+
-    [['workout','worked out'],['ru','studied russian'],['book','finished a book'],['show','watched something'],['idea','had an essay idea']].map(function(q){return '<button data-act="quick" data-q="'+q[0]+'">'+q[1]+'</button>'}).join('')+
+    [['workout','worked out','fitness'],['ru','studied russian','russian'],['book','finished a book','reading'],['show','watched something','screen'],['idea','had an essay idea','substack']].filter(function(q){return shown(q[2])}).map(function(q){return '<button data-act="quick" data-q="'+q[0]+'">'+q[1]+'</button>'}).join('')+
     '</div></section>';
   h+='<section class="card" id="friends">'+friendsInner()+'</section>';
   setTimeout(startLoop,0);
@@ -918,11 +924,11 @@ function shareCode(){
 
 /* ---------- rendering ---------- */
 var TABS=[['home','♥ home'],['fitness','fitness'],['reading','reading'],['screen','movies & tv'],['substack','substack'],['russian','русский']];
-function tab(){var h=(location.hash||'').slice(1);return TABS.some(function(t){return t[0]===h})?h:'home';}
+function tab(){var h=(location.hash||'').slice(1);return TABS.some(function(t){return t[0]===h&&shown(t[0])})?h:'home';}
 function render(){
   var t=tab(), d=new Date();
-  var head='<header><div class="grid"></div><div class="hrow"><div><div class="lbl">'+MONTHS[d.getMonth()]+' '+d.getDate()+' · '+d.getFullYear()+'</div><h1>life log</h1></div><div style="text-align:right"><div id="status">'+(ART?'saved ✓':(capDone?'saved on this device':'…'))+'</div><button class="link lbl" data-act="backup" style="margin-top:4px;padding:0">backup</button></div></div></header>';
-  var nav='<nav>'+TABS.map(function(x){return '<a href="#'+x[0]+'" class="'+(x[0]===t?'on':'')+'">'+x[1]+'</a>'}).join('')+'</nav>';
+  var head='<header><div class="grid"></div><div class="hrow"><div><div class="lbl">'+MONTHS[d.getMonth()]+' '+d.getDate()+' · '+d.getFullYear()+'</div><h1>life log</h1></div><div style="text-align:right"><div id="status">'+(ART?'saved ✓':(capDone?'saved on this device':'…'))+'</div><button class="link lbl" data-act="settings" style="margin-top:4px;padding:0">settings</button></div></div></header>';
+  var nav='<nav>'+TABS.filter(function(x){return shown(x[0])}).map(function(x){return '<a href="#'+x[0]+'" class="'+(x[0]===t?'on':'')+'">'+x[1]+'</a>'}).join('')+'</nav>';
   var body={home:rHome,fitness:rFitness,reading:function(){return rMedia('reading')},screen:function(){return rMedia('screen')},substack:rSubstack,russian:rRussian}[t]();
   $('#app').innerHTML=head+nav+'<main>'+body+'</main>';
   var on=document.querySelector('nav a.on');if(on&&on.scrollIntoView)on.scrollIntoView({inline:'center',block:'nearest'});
@@ -1124,9 +1130,12 @@ function summary(o){
   var parts=[[n(f.checkins),'check-in','check-ins'],[n(f.plan),'workout','workouts'],[n(o.books),'book','books'],[n(o.shows),'film or show','films & shows'],[n(o.notes),'note','notes'],[Object.keys(ru.days||{}).length,'russian day','russian days'],[Object.keys(ru.done||{}).length,'topic','topics']];
   return parts.map(function(p){return p[0]+' '+(p[0]===1?p[1]:p[2])}).join(' · ');
 }
-function backupSheet(){
+function settingsSheet(){
   var last=null;try{last=localStorage.getItem(LB)}catch(e){}
-  modal('backup',
+  modal('settings',
+    '<h3>tabs</h3><p class="muted" style="margin:2px 0 8px">Hide what you don\'t use. Your pet won\'t miss it, and nothing is deleted.</p>'+
+    TABS.filter(function(t){return t[0]!=='home'}).map(function(t){return '<label class="chk"><input type="checkbox" data-tabtoggle="'+t[0]+'"'+(shown(t[0])?' checked':'')+'><span>'+t[1]+'</span></label>'}).join('')+
+    '<h3 style="margin-top:18px">backup</h3>'+
     '<p style="margin:0 0 12px">Everything is saved in this browser only. Download a backup now and then, and use it to move your data to another device.</p>'+
     '<div class="f"><span class="lbl">on this device</span><div>'+summary(S)+'</div></div>'+
     '<div class="f"><span class="lbl">last backup</span><div>'+(last?fmt(last):'never')+'</div></div>'+
@@ -1194,7 +1203,7 @@ document.addEventListener('click',function(e){
     case 'ruT':var k=today(),d=S.ru.days[k]||(S.ru.days[k]={}),kk=el.getAttribute('data-k');d[kk]=!d[kk];save();render();break;
     case 'ruDay':editDay(el.getAttribute('data-d'));break;
     case 'cal':UI.cm+=+el.getAttribute('data-d');if(UI.cm<0){UI.cm=11;UI.cy--;}if(UI.cm>11){UI.cm=0;UI.cy++;}keepUI();render();break;
-    case 'backup':backupSheet();break;
+    case 'settings':settingsSheet();break;
     case 'export':exportData();break;
     case 'pet-l':case 'pet-r':case 'pet-u':case 'pet-d':case 'pet-a':case 'pet-b':petAct(act);break;
     case 'petName':nameModal();break;
@@ -1215,6 +1224,8 @@ document.addEventListener('submit',function(e){
   var f=MSAVE;if(f&&f()===false)return;closeModal();render();
 });
 document.addEventListener('change',function(e){
+  var tt=e.target.getAttribute&&e.target.getAttribute('data-tabtoggle');
+  if(tt){var hd=S.prefs.hidden.filter(function(x){return x!==tt});if(!e.target.checked)hd.push(tt);S.prefs.hidden=hd;FR.xp=-1;save();render();return;}
   var tid=e.target.getAttribute&&e.target.getAttribute('data-topic');
   if(tid){if(e.target.checked)S.ru.done[tid]=today();else delete S.ru.done[tid];save();var y=window.scrollY;render();window.scrollTo(0,y);}
 });

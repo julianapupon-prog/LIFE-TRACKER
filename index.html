@@ -763,12 +763,15 @@ function hotAct(a,x){
   if(a.indexOf('water:')===0)return waterPlant(a.slice(6),x);
 }
 function shelfSheet(k){
-  var M=k==='books'?MEDIA.reading:MEDIA.screen,arr=S[k].filter(function(b){return b.status==='done'}).sort(function(a,b){return (b.finish||'').localeCompare(a.finish||'')});
-  var body=arr.length?'<div class="list">'+arr.map(function(b){
-    var sub=k==='books'?b.author:[b.kind,b.where].filter(Boolean).join(' · ');
-    return '<div class="item"><div class="row" style="justify-content:space-between"><b>'+esc(b.title)+'</b>'+stars(b.rating)+'</div>'+(sub?'<div class="muted">'+esc(sub)+'</div>':'')+(b.finish?'<div class="lbl">'+fmt(b.finish)+'</div>':'')+'</div>'}).join('')+'</div>'
-    :'<div class="empty">nothing here yet.<br>'+(k==='books'?'finish a book':'watch something')+' and it shows up here ♥</div>';
-  modal(k==='books'?'my bookshelf · '+arr.length:'my tv shelf · '+arr.length,body,null,null,true);
+  var now=k==='books'?'reading':'watching',items=S[k];
+  var item=function(b){var sub=k==='books'?b.author:[b.kind,b.where].filter(Boolean).join(' · ');
+    return '<div class="item" data-act="shelfItem" data-t="'+(k==='books'?'reading':'screen')+'" data-id="'+b.id+'"><div class="row" style="justify-content:space-between"><b>'+esc(b.title)+'</b>'+(b.status==='done'?stars(b.rating):'')+'</div>'+(sub?'<div class="muted">'+esc(sub)+'</div>':'')+(b.status==='done'&&b.finish?'<div class="lbl">'+fmt(b.finish)+'</div>':'')+'</div>';};
+  var cur=items.filter(function(b){return b.status===now}),done=items.filter(function(b){return b.status==='done'}).sort(function(a,b){return (b.finish||'').localeCompare(a.finish||'')});
+  var body=(cur.length?'<h3>'+(k==='books'?'reading now':'watching now')+'</h3><div class="list">'+cur.map(item).join('')+'</div>':'')+
+    '<h3 style="margin-top:'+(cur.length?14:0)+'px">'+(k==='books'?'finished':'watched')+' · '+done.length+'</h3>'+
+    (done.length?'<div class="list">'+done.map(item).join('')+'</div>':'<div class="empty">nothing here yet.<br>'+(k==='books'?'finish a book':'watch something')+' and it shows up here ♥</div>')+
+    '<button type="button" class="primary big" style="margin-top:12px" data-act="shelfAdd" data-t="'+(k==='books'?'reading':'screen')+'">+ add '+(k==='books'?'a book':'a film or show')+'</button>';
+  modal(k==='books'?'my bookshelf':'my tv shelf',body,null,null,true);
 }
 
 /* home tab */
@@ -1331,6 +1334,8 @@ document.addEventListener('click',function(e){
     case 'pet-l':case 'pet-r':case 'pet-u':case 'pet-d':case 'pet-a':case 'pet-b':petAct(act);break;
     case 'petName':nameModal();break;
     case 'shop':shopSheet();break;
+    case 'shelfItem':closeModal();editMedia(t,id);break;
+    case 'shelfAdd':closeModal();editMedia(t);break;
     case 'buy':buy(el.getAttribute('data-k'));break;
     case 'wear':wear(el.getAttribute('data-k'));break;
     case 'join':joinFriend(id);break;

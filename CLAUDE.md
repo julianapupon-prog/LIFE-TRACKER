@@ -1,6 +1,6 @@
 # life log
 
-My personal life tracker. One HTML page (`index.html`), no build step, no framework. It started as a Claude artifact and I'm moving it to Claude Code so I can keep improving it.
+My personal life tracker. One HTML page (`index.html`), no build step, no framework. It started as a Claude artifact and I'm moving it to Claude Code so I can keep improving it. It's now a little Tamagotchi-style game: a pixel bunny grows and gets happier when I actually do the things I track.
 
 Start by reading `index.html`. The app works as-is. Don't rebuild it from scratch; change it piece by piece.
 
@@ -13,24 +13,31 @@ I want to stop planning and start doing. The app helps me keep up with my goals 
 - `index.html`: the whole app (HTML + CSS + JS in one file)
 - `data.json`: a copy of my data at the time of the move (also embedded in `index.html`, see "Data")
 - `CLAUDE.md`: this file
-- `manifest.webmanifest`, `sw.js`, `icons/`: make it installable on the phone (PWA) and work offline. The icon is "life log." handwritten in beige on royal blue. `sw.js` loads the page network-first, so changes show up right away. Bump `CACHE` in `sw.js` if the icons change.
+- `manifest.webmanifest`, `sw.js`, `icons/`: make it installable on the phone (PWA) and work offline. The icon is the pixel bunny (made from the same sprite) on pink. `sw.js` loads the page network-first, so changes show up right away. Bump `CACHE` in `sw.js` if the icons change.
 
 ## Design rules (keep these)
 
-- **Colours:** beige and royal blue only. Beige `#EBE4D1` (background), paper `#F4EFE1` (cards), royal blue `#1F3FBF`, dark ink `#132a85`. Thin blue lines and borders, a bit like an editorial grid.
+- **Look:** cute pixel-art game, pastel and colourful. References: pixel virtual-pet apps, soft pixel meadows, pastel handheld consoles. Original art only (no copying real games or consoles, no "Game Boy" branding).
+- **Colours:** cream `#FFF4EC` background with a faint pink grid, paper `#FFFDF9` cards, dark plum `#4A2B4F` for text, outlines and hard shadows. Accents: pink `#F7A8C4` / hot pink `#E86A9A`, sky `#9FD8F5`, mint `#A8E6C1`, butter `#FFE38A`, lavender `#E2CDF2`. All defined as CSS variables in `:root`.
+- **Shapes:** square corners, thick plum borders (2–3px), hard offset shadows (no blur), segmented pixel bars.
+- **Fonts (Google Fonts):** **Pixelify Sans** for everything readable (body, headings, buttons; it has Cyrillic). **Silkscreen** for tiny all-caps labels, the bunny's speech bubble and the console text.
 - **No photos** in the design itself. The only images are book and film covers I upload myself.
-- **Fonts:**
-  - Ballpoint handwriting, **Nothing You Could Do**, ONLY for titles and highlights: app title, section headings, tab names, book and film titles, main buttons, big numbers.
-  - Everything else uses a regular serif, **EB Garamond**.
-  - Tiny labels use **Cormorant Garamond** in small spaced caps.
-  - All from Google Fonts.
 - **Language:** the whole app is in English. The Russian tab can mix English with Russian examples.
 - Mobile first: I use it on my phone. Inputs are at least 16px so iOS doesn't zoom.
-- Inspiration: blue engraved / toile-style illustration on white, and minimal editorial brand identity on eggshell with Egyptian blue. Elegant, calm, a bit literary.
 
 ## Tabs and features
 
-Tabs live at the top, and the URL hash remembers the tab (`#fitness`, `#reading`, `#screen`, `#substack`, `#russian`).
+Tabs live at the top, and the URL hash remembers the tab (`#home` (default), `#fitness`, `#reading`, `#screen`, `#substack`, `#russian`).
+
+0. **Home (the bunny)**
+   - A pastel pixel handheld console. The screen is a `<canvas id="world">` (240×180 logical pixels): sky, mountains, house, tree, grass. Real time of day: from 22:00 to 7:00 it's night and she sleeps (any button wakes her for a bit).
+   - Controls: d-pad left/right walks, up jumps, down sits. A (pink) or tapping the screen = pet her (hearts). B (blue) = talk (a tip based on her lowest stat). Tap her name to rename.
+   - Four stats, computed from my real data in `petStats()`, nothing stored: **health** (workouts), **joy** (finished books & films), **smart** (Russian days + topics), **ideas** (Substack notes). Each logged thing gives points that fade by 18% per day, so stats drop if I stop. Gentle: stats never go below 8, she never gets sick or dies, she just gets sad (short ears) when the average is under 30.
+   - XP = all points ever. Level every 20 xp. Grows from **baby** → **kid** (60 xp, gets a bow, bigger) → **grown** (250 xp, pink scarf, biggest).
+   - World reflects progress: a flower per Russian study day this month, a stack of books by the door for books finished this year.
+   - When I come back to home after logging something, she celebrates (hearts + "+xp" bubble, or "i grew up!"). Last-seen xp is in `localStorage` key `lifelog-petxp`.
+   - "i just…" quick buttons open the existing forms: worked out, studied russian, finished a book, watched something, had an essay idea.
+   - Sprites are text grids (`BUN`, `HEART`, `ZED`) with the `PAL` colours; `grid(kind,stage)` makes the sleep / happy / sad faces and adds the bow and scarf.
 
 1. **Fitness**
    - "me" card: height, starting weight, goal weight, my goals (text)
@@ -71,7 +78,8 @@ The state is one object:
   shows:  [{id,title,kind,where,cover,status:'watching'|'wish'|'done',finish,rating,review,added}],
   notes:  [{id,title,status,body,links,tags,created,updated}],
   ru: { done:{topicId:dateLearned}, days:{'YYYY-MM-DD':{s,r,v,note}} },
-  goals: { books, shows } }
+  goals: { books, shows },
+  pet: { name, born } }
 ```
 
 How it saves right now:

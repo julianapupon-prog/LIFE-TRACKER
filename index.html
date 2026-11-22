@@ -796,7 +796,7 @@ function nameModal(){
 /* ---------- friends ---------- */
 /* Friends live in Supabase (see supabase/setup.sql). Only the pet is shared: name, colour,
    stage, level, xp, stats, mood. Identity = a random code + secret kept in S.social. */
-var SUPA={url:'',key:''};
+var SUPA={url:'https://bffpsrflqlzoiggnhdhg.supabase.co',key:'sb_publishable_M1wLnQ1g26qe8yIAbOoA6g__6vBak2s'};
 try{var so=JSON.parse(localStorage.getItem('lifelog-supa')||'null');if(so&&so.url)SUPA=so;}catch(e){}
 var FR={list:null,at:0,err:'',busy:false,xp:-1};
 var GIFTS={heart:{a:'a heart',g:HEART},carrot:{a:'a carrot',g:CARROT},flower:{a:'a flower',g:FLOWER}};

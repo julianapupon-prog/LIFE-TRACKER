@@ -14,6 +14,7 @@ I want to stop planning and start doing. The app helps me keep up with my goals 
 - `data.json`: a copy of my data at the time of the move (also embedded in `index.html`, see "Data")
 - `CLAUDE.md`: this file
 - `supabase/setup.sql`: the database for friends (run once in the Supabase SQL editor; safe to re-run).
+- `do-instead/index.html`: a separate little app, **Do Instead** (bordeaux + cream, thin serif + ballpoint). Answer 5 quick questions, get one offline thing to do instead of scrolling. Activities are the `things` array; progress is in `localStorage` (`di-*`). Not connected to life log.
 - `manifest.webmanifest`, `sw.js`, `icons/`: make it installable on the phone (PWA) and work offline. The icon is the pixel bunny (made from the same sprite) on pink. `sw.js` loads the page network-first, so changes show up right away. Bump `CACHE` in `sw.js` if the icons change.
 
 ## Design rules (keep these)

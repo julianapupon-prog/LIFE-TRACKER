@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Do Instead</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Nothing+You+Could+Do&family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+/* Layout: oxblood page, a lace-edged oval cameo as the button, a cream paper card underneath. Single theme by choice. */
+:root{
+  --oxblood:#4f0d14;
+  --oxblood-2:#5c1419;
+  --cream:#f4ebe3;
+  --ink:#3a0a0e;
+  --pen:#26357a;
+  --rose:#d9b8b0;
+  --display:"Cormorant Garamond", "Didot", Georgia, serif;
+  --hand:"Nothing You Could Do", "Bradley Hand", cursive;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+h1,h2,.timer,.tally b{font-variant-numeric:lining-nums tabular-nums}
+html,body{height:100%;margin:0}
+body{background:var(--oxblood);color:var(--cream);font-family:var(--mono);font-weight:300;font-size:12px;line-height:1.6}
+main{max-width:460px;margin:0 auto;min-height:100%;padding:22px 18px 36px;display:flex;flex-direction:column;gap:22px}
+nav{display:flex;justify-content:space-between;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--rose)}
+header{text-align:center;display:flex;flex-direction:column;gap:6px}
+h1{font-family:var(--display);font-weight:300;font-size:60px;line-height:.9;margin:0;letter-spacing:-.01em}
+h1 em{font-style:italic}
+.sub{font-family:var(--hand);font-size:20px;color:var(--rose);transform:rotate(-2deg)}
+.time{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.quiz{display:flex;flex-direction:column;gap:14px;border-top:1px solid rgba(244,235,227,.25);border-bottom:1px solid rgba(244,235,227,.25);padding:16px 0}
+.q{display:grid;grid-template-columns:28px 1fr;gap:4px 6px;align-items:baseline}
+.qn{font-family:var(--display);font-style:italic;font-size:18px;color:var(--rose)}
+.ql{font-family:var(--hand);font-size:20px}
+.opts{grid-column:2;display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-family:var(--mono);font-weight:300;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--cream);background:transparent;border:.5px solid rgba(244,235,227,.45);border-radius:999px;padding:6px 12px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--cream);color:var(--ink);border-color:var(--cream)}
+.record-wrap{display:flex;justify-content:center}
+#deal{width:min(280px,76vw);aspect-ratio:4/5;border:none;background:none;padding:0;cursor:pointer;position:relative;color:var(--cream)}
+#deal svg{position:absolute;inset:0;width:100%;height:100%}
+#deal .label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;pointer-events:none}
+#deal .label i{font-family:var(--display);font-weight:300;font-size:38px;line-height:1}
+#deal .label span{font-family:var(--hand);font-size:22px;color:var(--rose)}
+#deal:active{transform:scale(.98)}
+#deal.spin svg{animation:sway .9s ease}
+@keyframes sway{25%{transform:rotate(-4deg)}60%{transform:rotate(3deg)}100%{transform:rotate(0)}}
+@media (prefers-reduced-motion: reduce){#deal.spin svg{animation:none}}
+#deal:focus-visible,.chip:focus-visible,.btn:focus-visible{outline:2px solid var(--rose);outline-offset:4px}
+.card{background:var(--cream);color:var(--ink);padding:22px 20px;display:flex;flex-direction:column;gap:12px}
+.card .meta{display:flex;justify-content:space-between;align-items:baseline;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#8a5a5a}
+.card .meta .tag{font-family:var(--hand);font-size:18px;letter-spacing:0;text-transform:none;color:var(--pen)}
+.card h2{font-family:var(--display);font-weight:300;font-size:38px;line-height:1.05;margin:0;text-wrap:balance}
+.card h2 em{font-style:italic}
+.card p{margin:0;max-width:65ch}
+.card .hand{font-family:var(--hand);font-size:19px;line-height:1.35;color:var(--pen)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.btn{font-family:var(--mono);font-weight:400;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:10px 14px;cursor:pointer;border:1px solid var(--ink)}
+.btn.primary{background:var(--ink);color:var(--cream)}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn[disabled]{opacity:.35;cursor:default}
+.timer{font-family:var(--display);font-weight:300;font-style:italic;font-size:72px;line-height:1;font-variant-numeric:tabular-nums}
+.tally{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid rgba(244,235,227,.25);padding-top:14px}
+.tally .hand{font-family:var(--hand);font-size:20px;color:var(--rose)}
+.tally b{font-family:var(--display);font-style:italic;font-weight:300;font-size:48px;font-variant-numeric:tabular-nums}
+.log h3{font-family:var(--hand);font-weight:400;font-size:22px;color:var(--rose);margin:0 0 6px}
+.log ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.log li{display:flex;justify-content:space-between;gap:12px;border-bottom:1px dotted rgba(244,235,227,.3);padding-bottom:6px}
+.log li span:last-child{color:var(--rose);white-space:nowrap}
+footer{font-family:var(--display);font-weight:300;font-style:italic;font-size:19px;color:var(--rose);text-align:center;margin-top:auto}
+</style>
+</head>
+<body>
+<main>
+  <nav><span>Catalogue of small things</span><span>No. 01</span></nav>
+  <header>
+    <h1>Do <em>Instead</em></h1>
+    <div class="sub">put the phone down, love</div>
+  </header>
+
+  <section class="quiz" aria-label="Quick check-in">
+    <div class="q"><span class="qn">i.</span><span class="ql">How's your energy?</span>
+      <div class="opts" data-k="e"><button class="chip" data-v="low">low</button><button class="chip" data-v="ok">okay</button><button class="chip" data-v="high">buzzing</button></div></div>
+    <div class="q"><span class="qn">ii.</span><span class="ql">How much time?</span>
+      <div class="opts" data-k="t"><button class="chip" data-v="short">~5 min</button><button class="chip" data-v="mid">~20 min</button><button class="chip" data-v="long">an hour</button></div></div>
+    <div class="q"><span class="qn">iii.</span><span class="ql">Where are you?</span>
+      <div class="opts" data-k="p"><button class="chip" data-v="home">staying in</button><button class="chip" data-v="out">can go out</button></div></div>
+    <div class="q"><span class="qn">iv.</span><span class="ql">What do you need?</span>
+      <div class="opts" data-k="n"><button class="chip" data-v="rest">to slow down</button><button class="chip" data-v="make">to make something</button><button class="chip" data-v="move">to move</button><button class="chip" data-v="tidy">to tidy up</button><button class="chip" data-v="connect">to talk to someone</button></div></div>
+    <div class="q"><span class="qn">v.</span><span class="ql">Who's around?</span>
+      <div class="opts" data-k="w"><button class="chip" data-v="solo">just me</button><button class="chip" data-v="with">someone's here</button></div></div>
+  </section>
+
+  <div class="record-wrap">
+    <button id="deal" aria-label="Give me one thing to do">
+      <svg id="frame" viewBox="0 0 280 350" aria-hidden="true"></svg>
+      <div class="label"><i>Give me</i><span>one thing</span></div>
+    </button>
+  </div>
+
+  <section class="card" id="card" aria-live="polite"></section>
+
+  <div class="tally"><span class="hand">chose this over scrolling</span><b id="total">0</b></div>
+
+  <section class="log" id="log"></section>
+
+  <footer>&ldquo;The finest moments exist only offline.&rdquo;</footer>
+</main>
+
+<script>
+const T = {short:"~5 min", mid:"~20 min", long:"an hour"};
+const MIN = {short:5, mid:20, long:50};
+const things = [
+  // t: time · e: energy levels it suits · p: home/out/any · n: rest/make/move/tidy/connect · w:"with" = needs someone there
+  // ~5 min
+  {t:"short",e:["low","ok"],p:"home",n:"rest",tag:"vinyl",title:"Play one side of a record",text:"Pick by the spine, not by thinking. Sit and listen to the whole side. No phone in your hand."},
+  {t:"short",e:["low","ok"],p:"any",n:"rest",tag:"music",title:"One song, full attention",text:"A song you love. Headphones on, eyes closed, nothing else."},
+  {t:"short",e:["ok","high"],p:"home",n:"move",tag:"dance",title:"Dance to one song",text:"Door shut, volume up. However you want to move."},
+  {t:"short",e:["low","ok","high"],p:"home",n:"rest",tag:"dogs",title:"Floor time with the dogs",text:"Get down to their level. Brush them, play tug, or just sit with them."},
+  {t:"short",e:["ok","high"],p:"home",n:"make",tag:"draw",title:"Draw the nearest object",text:"Whatever's closest to your hand. Pen only, no erasing."},
+  {t:"short",e:["ok","high"],p:"any",n:"make",tag:"russian",title:"Ten Russian words",text:"Name ten things around you and write them in Cyrillic, out loud."},
+  {t:"short",e:["low","ok"],p:"any",n:"make",tag:"journal",title:"Write down one thing you noticed today",text:"A sentence, a color, something someone said. By hand."},
+  {t:"short",e:["low","ok","high"],p:"any",n:"make",tag:"ideas",title:"Empty your head",text:"Three ideas, any size: an essay, a gift, a place to go. Write them down and close the notebook."},
+  {t:"short",e:["ok","high"],p:"home",n:"move",tag:"yoga",title:"Five sun salutations",text:"Slow ones. Count breaths, not reps."},
+  {t:"short",e:["low"],p:"home",n:"rest",tag:"rest",title:"Lie on the floor for one song",text:"Eyes closed. Just one song, then decide what's next."},
+  {t:"short",e:["low","ok"],p:"home",n:"rest",tag:"puzzle",title:"Fit ten puzzle pieces",text:"Only ten. Edges count."},
+  {t:"short",e:["ok","high"],p:"out",n:"move",tag:"walk",title:"Around the block",text:"Out the door, once around, back. No headphones."},
+  {t:"short",e:["low","ok"],p:"home",n:"tidy",tag:"tidy",title:"Clear one surface",text:"Nightstand, desk or sink. Everything off, wipe it, put back only what belongs there."},
+  {t:"short",e:["ok","high"],p:"home",n:"tidy",tag:"tidy",title:"Five-minute room reset",text:"Clothes away, cups to the kitchen, bed made, window open."},
+  {t:"short",e:["low","ok"],p:"home",n:"rest",tag:"skincare",title:"Slow skincare",text:"Cleanse, then do the rest slowly with the light low. Actually feel it."},
+  {t:"short",e:["low","ok","high"],p:"any",n:"connect",tag:"grandma",title:"Call your grandma",text:"Just to say hi. Ask her one thing about her day."},
+  {t:"short",e:["low","ok"],p:"any",n:"connect",tag:"friends",title:"Voice note to a friend",text:"Not a text. A real voice note telling them one thing from your day."},
+  {t:"short",e:["low"],p:"home",n:"rest",tag:"magazine",title:"Flip through one magazine",text:"One from the pile you never get to. Fold the corner of the page you like most."},
+  {t:"short",e:["low","ok"],p:"home",n:"make",tag:"crochet",title:"Crochet one row",text:"Just one. It's how the scarf gets finished."},
+  {t:"short",e:["ok","high"],p:"home",n:"connect",w:"with",tag:"games",title:"One quick round of cards",text:"Grab whoever's around. One round, loser picks the next thing."},
+
+  // ~20 min
+  {t:"mid",e:["low","ok"],p:"home",n:"rest",tag:"read",title:"Read 20 pages",text:"Whatever's on the nightstand. Underline one line worth keeping."},
+  {t:"mid",e:["ok","high"],p:"out",n:"move",tag:"bike",title:"Take the bike out",text:"No destination. Ibirapuera if you feel like it. Just ride."},
+  {t:"mid",e:["low","ok"],p:"out",n:"move",tag:"walk",title:"Walk the dogs on a new route",text:"A Moema street you never take. Look up at the buildings."},
+  {t:"mid",e:["low","ok"],p:"home",n:"rest",tag:"nails",title:"Do your nails",text:"A color you wouldn't usually pick. Let them dry properly, phone out of reach."},
+  {t:"mid",e:["ok","high"],p:"any",n:"make",tag:"essay",title:"One paragraph for afterimage",text:"No outline. Start with a film or book image that's stuck with you."},
+  {t:"mid",e:["ok","high"],p:"home",n:"make",tag:"paint",title:"Paint something in three colors",text:"Only three. The dogs, a cup, the window."},
+  {t:"mid",e:["low","ok"],p:"home",n:"make",tag:"vinyl",title:"Record and sketchbook",text:"Put on an album side and draw what it sounds like. Abstract counts."},
+  {t:"mid",e:["ok","high"],p:"any",n:"make",tag:"russian",title:"One Russian lesson, on paper",text:"One grammar topic, five sentences of your own."},
+  {t:"mid",e:["low","ok"],p:"home",n:"rest",tag:"russian",title:"A Russian video",text:"Russian subtitles on. Write down three new words."},
+  {t:"mid",e:["low","ok"],p:"home",n:"rest",tag:"puzzle",title:"One corner of the puzzle",text:"Pick a color zone and finish it."},
+  {t:"mid",e:["low","ok"],p:"home",n:"move",tag:"yoga",title:"A short yoga flow",text:"Mat out, lights low. Hips and back."},
+  {t:"mid",e:["low"],p:"home",n:"rest",tag:"skincare",title:"Long shower, then skincare",text:"The whole routine, slowly. Then sit with a tea and do nothing else."},
+  {t:"mid",e:["low","ok"],p:"home",n:"rest",tag:"skincare",title:"Face mask, record on",text:"Mask on, lie down, one album side. Done when the side ends."},
+  {t:"mid",e:["low","ok"],p:"any",n:"make",tag:"journal",title:"A full journal page",text:"Date at the top, then write until the page is full. Messy handwriting allowed."},
+  {t:"mid",e:["ok","high"],p:"any",n:"make",tag:"ideas",title:"Five ideas for afterimage",text:"Five books, artworks or films you could write about. One line on why for each."},
+  {t:"mid",e:["ok","high"],p:"home",n:"tidy",tag:"organise",title:"Organise one drawer",text:"Everything out, wipe it, put back only what you use. The rest goes straight into a bag."},
+  {t:"mid",e:["ok","high"],p:"home",n:"tidy",tag:"clean",title:"Clean your room",text:"Floor clear, laundry in, bed made, window open. Put a record on while you do it."},
+  {t:"mid",e:["ok","high"],p:"home",n:"tidy",tag:"clean",title:"Kitchen like a guest is coming",text:"Counters clear, sink empty, one nice thing on the table."},
+  {t:"mid",e:["ok","high"],p:"any",n:"move",tag:"dogs",title:"Play with the dogs",text:"Ball, tug, a new trick. Twenty minutes of your whole attention."},
+  {t:"mid",e:["low","ok","high"],p:"any",n:"connect",tag:"friends",title:"Call a friend",text:"A real call, not a text thread. Make tea first."},
+  {t:"mid",e:["low","ok"],p:"any",n:"connect",tag:"grandma",title:"A proper call with grandma",text:"Ask her for a story or a recipe. Write down what she says."},
+  {t:"mid",e:["low"],p:"home",n:"rest",tag:"picture book",title:"Open a picture book",text:"One of the big ones you never pick. Look at every page and note your favourite image."},
+  {t:"mid",e:["high"],p:"home",n:"move",tag:"dance",title:"Three songs, loud",text:"Door shut. Dance until the third song ends."},
+  {t:"mid",e:["ok","high"],p:"any",n:"move",tag:"treadmill",title:"Twenty minutes on the treadmill",text:"Walk or run, one playlist. Stop when it ends."},
+  {t:"mid",e:["low","ok"],p:"home",n:"make",tag:"crochet",title:"Crochet a few rounds",text:"Record on, hands busy, mind quiet."},
+  {t:"mid",e:["ok","high"],p:"any",n:"make",tag:"research",title:"Look one thing up properly",text:"Something you've been curious about. One real article, not a feed. Three notes by hand."},
+  {t:"mid",e:["low","ok"],p:"any",n:"make",tag:"websites",title:"Collect three beautiful websites",text:"Hunt for sites with design you love. Save them and write one line on why for each."},
+  {t:"mid",e:["low","ok"],p:"home",n:"rest",tag:"games",title:"One video game session",text:"Pick the game, set the timer, stop when it rings."},
+  {t:"mid",e:["low"],p:"home",n:"rest",tag:"tv",title:"One episode, chosen on purpose",text:"Pick it before you sit down. One episode, then off."},
+  {t:"mid",e:["ok","high"],p:"home",n:"connect",w:"with",tag:"games",title:"A short board game",text:"Something quick. Phones in a pile, face down."},
+
+  // an hour
+  {t:"long",e:["ok","high"],p:"out",n:"move",tag:"bike",title:"Bike to a café and read there",text:"Book in the bag, phone in the bag too. Order something slow."},
+  {t:"long",e:["low","ok"],p:"home",n:"rest",tag:"read",title:"Finish a chapter (or two)",text:"Real chair, real lamp, not the bed."},
+  {t:"long",e:["low","ok"],p:"out",n:"rest",tag:"walk",title:"Long walk, no headphones",text:"Let your mind wander. Small notebook in your pocket."},
+  {t:"long",e:["ok","high"],p:"home",n:"make",tag:"paint",title:"Make one finished small piece",text:"Postcard size. Start and finish it today, sign and date it."},
+  {t:"long",e:["low","ok"],p:"home",n:"make",tag:"tarot",title:"A three-card spread, written out",text:"Past, present, next. Write it like a tiny Calvino story."},
+  {t:"long",e:["high"],p:"out",n:"move",tag:"climb",title:"Go climbing",text:"Pack the bag now. Out the door in ten minutes and it counts."},
+  {t:"long",e:["ok","high"],p:"out",n:"move",tag:"yoga",title:"Go to a yoga class",text:"Find the next one and just go."},
+  {t:"long",e:["ok","high"],p:"any",n:"make",tag:"essay",title:"Draft a Substack piece",text:"An hour, no editing. Messy first draft only."},
+  {t:"long",e:["low"],p:"home",n:"rest",tag:"vinyl",title:"A whole album, front to back",text:"Liner notes in your lap. Lie on the floor if you want."},
+  {t:"long",e:["ok"],p:"out",n:"rest",tag:"wander",title:"Go look at a beautiful building",text:"A library, an old church, a museum lobby. Sit there for a while."},
+  {t:"long",e:["ok","high"],p:"out",n:"move",tag:"pool",title:"Go to the pool",text:"Pack the bag now. Laps or just floating, both count."},
+  {t:"long",e:["ok","high"],p:"out",n:"move",tag:"gym",title:"Go to the gym",text:"Shoes on, bottle filled, out the door in ten minutes."},
+  {t:"long",e:["ok","high"],p:"any",n:"move",tag:"treadmill",title:"Treadmill through one album",text:"Walk or run until the last track. Start slow."},
+  {t:"long",e:["ok","high"],p:"out",n:"move",tag:"dogs",title:"Take the dogs to the park",text:"Somewhere they can sniff everything. Let them set the pace."},
+  {t:"long",e:["low","ok"],p:"home",n:"rest",tag:"film",title:"A film you've been saving",text:"From the watchlist. Lights off, phone in another room."},
+  {t:"long",e:["low","ok"],p:"home",n:"rest",tag:"documentary",title:"A documentary",text:"About an artist or a place. Notebook nearby for afterimage."},
+  {t:"long",e:["ok","high"],p:"home",n:"tidy",tag:"clean",title:"Clean the house",text:"Two rooms. Music up, windows open, finish with a clean floor."},
+  {t:"long",e:["ok","high"],p:"home",n:"tidy",tag:"organise",title:"Organise the wardrobe",text:"One section at a time. Fold, hang, donate."},
+  {t:"long",e:["low","ok"],p:"home",n:"rest",tag:"puzzle",title:"A puzzle evening",text:"Record on, tea next to you, a whole hour with the puzzle."},
+  {t:"long",e:["low","ok"],p:"home",n:"make",tag:"crochet",title:"Crochet a small finished thing",text:"A coaster, a flower, a granny square. Finish it today."},
+  {t:"long",e:["ok"],p:"out",n:"make",tag:"draw",title:"Sketch outside",text:"Sketchbook to a park bench or café. Draw people, trees, chairs."},
+  {t:"long",e:["ok","high"],p:"any",n:"make",tag:"research",title:"A proper rabbit hole",text:"One topic: an artist, a film movement, a word's history. An hour of reading, then one paragraph summing it up."},
+  {t:"long",e:["ok","high"],p:"any",n:"make",tag:"russian",title:"Russian hour",text:"Twenty minutes grammar, twenty reading, twenty a video."},
+  {t:"long",e:["low","ok"],p:"out",n:"make",tag:"journal",title:"Journal at a café",text:"Notebook, a good pen, a slow coffee. Write until the cup is empty."},
+  {t:"long",e:["low","ok"],p:"home",n:"make",tag:"magazine",title:"Magazine collage",text:"Cut up the old magazines and make one page for your journal."},
+  {t:"long",e:["low","ok"],p:"home",n:"rest",tag:"spa",title:"A full spa evening",text:"Skincare, mask, nails, in that order. Record on."},
+  {t:"long",e:["low","ok"],p:"home",n:"rest",tag:"games",title:"A real gaming session",text:"Snacks ready, one game, guilt-free. Stop when the hour's up."},
+  {t:"long",e:["low","ok","high"],p:"any",n:"connect",tag:"friends",title:"Long call, walking",text:"Call a friend and walk while you talk."},
+  {t:"long",e:["ok","high"],p:"home",n:"connect",w:"with",tag:"games",title:"Board game night",text:"Pick something long. Snacks out, phones in another room."},
+];
+
+
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+
+let ans = Object.assign({e:"ok",t:"mid",p:"home",n:"rest",w:"solo"}, store.get("di-ans",{}));
+let total = store.get("di-total",0);
+let history = store.get("di-history",[
+  {title:"Play one side of a record", when:"example"},
+]);
+if (history.length===1 && history[0].when==="example" && total>0) history=[];
+let current = null, skips = 0, lastIdx = -1, timerId = null, seen = [];
+
+const $ = id => document.getElementById(id);
+const card = $("card");
+
+function renderTime(){
+  document.querySelectorAll(".opts").forEach(g => g.querySelectorAll(".chip").forEach(c =>
+    c.setAttribute("aria-pressed", ans[g.dataset.k]===c.dataset.v ? "true":"false")));
+}
+function renderTotal(){ $("total").textContent = total; }
+function renderLog(){
+  const items = history.slice(0,5);
+  if(!items.length){ $("log").innerHTML=""; return; }
+  $("log").innerHTML = "<h3>lately…</h3><ul>" + items.map(h =>
+    `<li><span>${h.title}</span><span>${h.when}</span></li>`).join("") + "</ul>";
+}
+function renderIdle(){
+  card.innerHTML = `
+    <div class="meta"><span class="tag">waiting</span><span>${T[ans.t]}</span></div>
+    <h2>Feel like <em>scrolling?</em></h2>
+    <p>Press the cameo. Answer the questions above and you get one thing that fits. You can skip twice, then you have to pick one.</p>`;
+}
+function pick(){
+  const score = x => (x.e.includes(ans.e)?3:0) + (x.n===ans.n?3:0)
+    + ((x.p==="any"||x.p===ans.p)?2:-6)
+    + (x.w==="with" ? (ans.w==="with"?2:-20) : 0);
+  let pool = things.map((x,i)=>({...x,i})).filter(x => x.t===ans.t && !seen.includes(x.i));
+  if(!pool.length){ seen=[]; pool = things.map((x,i)=>({...x,i})).filter(x => x.t===ans.t && x.i!==lastIdx); }
+  const best = Math.max(...pool.map(score));
+  const top = pool.filter(x => score(x) >= best-1);
+  const choice = top[Math.floor(Math.random()*top.length)];
+  lastIdx = choice.i; seen.push(choice.i);
+  return choice;
+}
+function deal(fromSkip){
+  stopTimer();
+  if(!fromSkip){ skips = 0; seen = lastIdx>=0 ? [lastIdx] : []; }
+  const d = $("deal");
+  d.classList.remove("spin"); void d.offsetWidth; d.classList.add("spin");
+  current = pick();
+  renderCard();
+}
+function renderCard(){
+  const left = 2 - skips;
+  card.innerHTML = `
+    <div class="meta"><span class="tag">${current.tag}</span><span>${T[current.t]}</span></div>
+    <h2>${current.title}</h2>
+    <p class="hand">${current.text}</p>
+    <div class="actions">
+      <button class="btn primary" id="go">Doing it</button>
+      <button class="btn ghost" id="skip" ${left<=0?"disabled":""}>${left>0?`Not this one (${left} left)`:"No more skips"}</button>
+    </div>`;
+  $("go").onclick = start;
+  $("skip").onclick = () => { if(skips<2){ skips++; deal(true); } };
+}
+function start(){
+  let secs = MIN[current.t]*60;
+  const end = Date.now() + secs*1000;
+  card.innerHTML = `
+    <div class="meta"><span class="tag">${current.tag}</span><span>in progress</span></div>
+    <h2>${current.title}</h2>
+    <div class="timer" id="clock"></div>
+    <p class="hand">Put the phone face down. The timer is only a suggestion, so stop whenever it feels done.</p>
+    <div class="actions">
+      <button class="btn primary" id="done">I did it</button>
+      <button class="btn ghost" id="quit">Back</button>
+    </div>`;
+  const tick = () => {
+    const s = Math.max(0, Math.round((end-Date.now())/1000));
+    $("clock").textContent = `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
+    if(s===0) stopTimer();
+  };
+  tick(); timerId = setInterval(tick, 1000);
+  $("done").onclick = finish;
+  $("quit").onclick = () => { stopTimer(); renderCard(); };
+}
+function stopTimer(){ if(timerId){ clearInterval(timerId); timerId=null; } }
+function finish(){
+  stopTimer();
+  total++;
+  if(history.length && history[0].when==="example") history=[];
+  const d = new Date();
+  history.unshift({title: current.title, when: d.toLocaleDateString(undefined,{day:"numeric",month:"short"})});
+  history = history.slice(0,20);
+  store.set("di-total", total); store.set("di-history", history);
+  renderTotal(); renderLog();
+  card.innerHTML = `
+    <div class="meta"><span class="tag">done ✓</span><span>+1</span></div>
+    <h2>That's ${total} time${total===1?"":"s"} you picked this over scrolling.</h2>
+    <p>Nice. Still itchy? Press the cameo again.</p>`;
+  current = null;
+}
+
+document.querySelectorAll(".opts").forEach(g => g.querySelectorAll(".chip").forEach(c => c.onclick = () => {
+  ans[g.dataset.k] = c.dataset.v; store.set("di-ans", ans); renderTime();
+  if(current && !timerId) deal(); else if(!current) renderIdle();
+}));
+$("deal").onclick = () => deal(false);
+
+(function drawFrame(){
+  const svg=document.getElementById("frame"), cx=140, cy=175, rx=126, ry=160, n=46;
+  let out="";
+  out+=`<ellipse cx="${cx}" cy="${cy}" rx="${rx-14}" ry="${ry-14}" fill="#5c1419" stroke="#f4ebe3" stroke-width="1"/>`;
+  out+=`<ellipse cx="${cx}" cy="${cy}" rx="${rx-20}" ry="${ry-20}" fill="none" stroke="#d9b8b0" stroke-width=".6" stroke-dasharray="2 3"/>`;
+  for(let i=0;i<n;i++){
+    const a=i/n*Math.PI*2, x=cx+Math.cos(a)*rx, y=cy+Math.sin(a)*ry;
+    out+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="7" fill="none" stroke="#f4ebe3" stroke-width=".8"/>`;
+    out+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2" fill="none" stroke="#d9b8b0" stroke-width=".6"/>`;
+    const x2=cx+Math.cos(a)*(rx-8), y2=cy+Math.sin(a)*(ry-8);
+    out+=`<line x1="${x.toFixed(1)}" y1="${y.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#f4ebe3" stroke-width=".5"/>`;
+  }
+  svg.innerHTML=out;
+})();
+renderTime(); renderTotal(); renderLog(); renderIdle();
+</script>
+</body>
+</html>

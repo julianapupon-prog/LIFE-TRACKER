@@ -30,8 +30,15 @@ I want to stop planning and start doing. The app helps me keep up with my goals 
 
 Tabs live at the top, and the URL hash remembers the tab (`#home` (default), `#fitness`, `#reading`, `#screen`, `#substack`, `#russian`).
 
-0. **Home (the bunny)**
+0. **Home (the pet)**
    - A pastel pixel handheld console. The screen is a `<canvas id="world">` (240×180 logical pixels): sky, mountains, house, tree, grass. Real time of day: from 22:00 to 7:00 it's night and she sleeps (any button wakes her for a bit).
+   - Customise in the "your pet" sheet (tap her name): name, animal (bunny / kitty / puppy), fur colour (9 options in `COLORS`), house roof colour (`ROOFS`). Sprites are text grids in `SPECIES`; all three share the same body rows and eye rows so the faces, bow and scarf work for every animal.
+   - **Scenes** (`P.scene`), switched by tapping things in the world or the home / inside / garden pills on the console, with an iris transition:
+     - `out`: outside her house. Tap the house to go in, the signpost to go to the garden.
+     - `in`: inside. Bookshelf with a spine per finished book (tap = list of finished books), TV rack with a case per finished film/show (tap = list), bed (nap), door (back out).
+     - `garden`: the shared garden. Friends' pets wander here; swing, bench, pond, a ball you kick to each other, and one shared plant pot per friend (see Friends).
+     - `visit` / `visitIn`: a friend's house, outside and inside, with her roof colour and her pet. Her shelf and TV show counts only.
+   - Tapping the world uses hotspots registered while drawing (`P.hot`); anything else pets her.
    - Controls: d-pad left/right walks, up jumps, down sits. A (pink) or tapping the screen = pet her (hearts). B (blue) = talk (a tip based on her lowest stat). Tap her name to rename.
    - Four stats, computed from my real data in `petStats()`, nothing stored: **health** (workouts), **joy** (finished books & films), **smart** (Russian days + topics), **ideas** (Substack notes). Each logged thing gives points that fade by 18% per day, so stats drop if I stop. Gentle: stats never go below 8, she never gets sick or dies, she just gets sad (short ears) when the average is under 30.
    - XP = all points ever. Level every 20 xp. Grows from **baby** → **kid** (60 xp, gets a bow, bigger) → **grown** (250 xp, pink scarf, biggest).
@@ -40,9 +47,9 @@ Tabs live at the top, and the URL hash remembers the tab (`#home` (default), `#f
    - "i just…" quick buttons open the existing forms: worked out, studied russian, finished a book, watched something, had an essay idea.
    - Sprites are text grids (`BUN`, `HEART`, `ZED`) with the `PAL` colours; `grid(kind,stage)` makes the sleep / happy / sad faces and adds the bow and scarf.
 
-   - **Friends** (card on home): each device gets a code like `LL-7K2QX` plus a secret (`S.social`, also in backups). Add a friend by code (works both ways), see her bunny, level, stats and when she was last active, send a heart / carrot / flower (shows up on the other's ground for 3 days and she celebrates), and "invite over" (her bunny visits your world for 90 seconds; only on your screen). Only pet info is shared, never books, notes or workouts.
+   - **Shared plant:** each pair of friends has a pot in the garden. Each of you can water it once a day; it grows one step (seed → sprout → … → little tree, 7 stages) on each day you *both* watered it. Server side in `water_plant`.
+   - **Friends** (card on home): each device gets a code like `LL-7K2QX` plus a secret (`S.social`, also in backups). Add a friend by code (works both ways), see her bunny, level, stats and when she was last active, send a heart / carrot / flower (shows up on the other's ground for 3 days and she celebrates), and "invite over" (her pet visits your world for 90 seconds; only on your screen), and "visit her house". Only pet info is shared, plus counts of finished books/films and her roof colour (`home`), never titles. Only pet info is shared, never books, notes or workouts.
    - Friends use Supabase through the RPC functions in `supabase/setup.sql` (tables are locked; every function checks the secret). The project URL and publishable key go in `SUPA` in `index.html` (they're meant to be public). Until they're set, the card says friends aren't connected. `localStorage` key `lifelog-supa` can override them for testing.
-   - Bunny colour (white / cream / grey / pink) is picked in the name sheet.
 
 1. **Fitness**
    - "me" card: height, starting weight, goal weight, my goals (text)
@@ -84,7 +91,7 @@ The state is one object:
   notes:  [{id,title,status,body,links,tags,created,updated}],
   ru: { done:{topicId:dateLearned}, days:{'YYYY-MM-DD':{s,r,v,note}} },
   goals: { books, shows },
-  pet: { name, born, color },
+  pet: { name, born, color, species, roof },
   social: { code, secret } }
 ```
 

@@ -98,7 +98,7 @@ details.grp summary .n{font-family:'Silkscreen',monospace;font-size:10px;white-s
 .chk{display:flex;gap:10px;align-items:center;padding:6px 0}
 svg text{font-family:'Pixelify Sans',sans-serif;fill:var(--ink)}
 /* bunny console */
-.console{position:relative;background:#F7B6CF;border:3px solid var(--ink);border-radius:14px 14px 60px 14px;padding:14px 14px 26px;margin:0 auto 18px;max-width:440px;box-shadow:inset -6px -6px 0 rgba(232,106,154,.45),inset 4px 4px 0 rgba(255,255,255,.45),4px 4px 0 var(--ink)}
+.console{position:relative;background:#F7B6CF;border:3px solid var(--ink);border-radius:14px 14px 60px 14px;padding:14px 14px 30px;margin:0 auto 18px;max-width:440px;box-shadow:inset -6px -6px 0 rgba(232,106,154,.45),inset 4px 4px 0 rgba(255,255,255,.45),4px 4px 0 var(--ink)}
 .bezel{position:relative;background:#5B3A66;border-radius:8px 8px 26px 8px;padding:8px 14px 16px 22px}
 .led{position:absolute;left:8px;top:48%;width:6px;height:6px;background:#7CF29A;box-shadow:0 0 6px #7CF29A}
 .ptag{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 6px;font-family:'Silkscreen',monospace;font-size:10px;color:#FCD9E6;text-transform:uppercase}
@@ -127,10 +127,8 @@ svg text{font-family:'Pixelify Sans',sans-serif;fill:var(--ink)}
 .pbar i{display:block;height:100%;-webkit-mask:repeating-linear-gradient(90deg,#000 0 8px,transparent 8px 10px);mask:repeating-linear-gradient(90deg,#000 0 8px,transparent 8px 10px)}
 .quick{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .quick button{padding:10px 6px;font-weight:600;background:#fff}
-.brandrow{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:10px 0 0 4px}
-.brandrow .brand{margin:0}
-.scenes{display:flex;gap:6px}
-.scenes button{font-family:'Silkscreen',monospace;font-size:10px;text-transform:uppercase;padding:4px 8px;border-radius:10px;background:#5B3A66;color:#FCD9E6;border:2px solid var(--ink);box-shadow:none}
+.scenes{display:flex;justify-content:center;gap:12px;margin:22px 40px 0 0}
+.scenes button{font-family:'Silkscreen',monospace;font-size:10px;text-transform:uppercase;padding:5px 10px;border-radius:12px;background:#5B3A66;color:#FCD9E6;border:2px solid var(--ink);box-shadow:none}
 .scenes button.on{background:#FCD9E6;color:var(--ink)}
 .ppv{width:84px;margin:0 auto 12px;padding:8px;background:var(--skyl);border:3px solid var(--ink)}
 .friend{display:flex;gap:12px;padding:12px 0;border-top:2px dashed var(--line)}
@@ -752,11 +750,12 @@ function rHome(){
       '<div class="ptag"><button class="ptname" data-act="petName">♥ '+esc(name)+'</button><span>lv '+ps.level+' · '+st.name+' '+spn+'</span></div>'+
       '<div class="screen"><canvas id="world" data-act="world"></canvas><div class="bubble" id="bubble">'+esc(P.msg)+'</div></div>'+
     '</div>'+
-    '<div class="brandrow"><div class="brand">life log</div><div class="scenes">'+[['out','home'],['in','inside'],['garden','garden']].map(function(x){return '<button data-act="scene" data-s="'+x[0]+'" class="'+(P.scene===x[0]?'on':'')+'">'+x[1]+'</button>'}).join('')+'</div></div>'+
+    '<div class="brand">life log</div>'+
     '<div class="controls">'+
       '<div class="dpad"><button data-act="pet-u" class="u" aria-label="jump"></button><button data-act="pet-l" class="l" aria-label="left"></button><span class="c"></span><button data-act="pet-r" class="r" aria-label="right"></button><button data-act="pet-d" class="d" aria-label="sit"></button></div>'+
       '<div class="ab"><div><button data-act="pet-b" class="bb" aria-label="talk"></button><span>talk</span></div><div><button data-act="pet-a" class="ba" aria-label="pet her"></button><span>pet</span></div></div>'+
     '</div>'+
+    '<div class="scenes">'+[['out','home'],['in','inside'],['garden','garden']].map(function(x){return '<button data-act="scene" data-s="'+x[0]+'" class="'+(P.scene===x[0]?'on':'')+'">'+x[1]+'</button>'}).join('')+'</div>'+
     '<div class="grille"></div>'+
   '</div>';
   h+='<section class="card"><div class="card-h"><h2>how she\'s doing</h2><span class="lbl">'+ps.xp+' xp</span></div>'+

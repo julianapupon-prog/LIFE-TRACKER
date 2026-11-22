@@ -1,0 +1,32 @@
+{
+  "v": 1,
+  "updated": 1795279008281,
+  "fitness": {
+    "height": "",
+    "weight": "",
+    "goalWeight": "",
+    "goals": "",
+    "plan": [],
+    "checkins": [
+      {
+        "date": "2026-11-20",
+        "workout": "other",
+        "did": "i played tennis",
+        "weight": "",
+        "notes": "",
+        "id": "hzry1fjor1"
+      }
+    ]
+  },
+  "books": [],
+  "shows": [],
+  "notes": [],
+  "ru": {
+    "done": {},
+    "days": {}
+  },
+  "goals": {
+    "books": 50,
+    "shows": 70
+  }
+}

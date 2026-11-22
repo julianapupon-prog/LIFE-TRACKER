@@ -13,6 +13,7 @@ I want to stop planning and start doing. The app helps me keep up with my goals 
 - `index.html`: the whole app (HTML + CSS + JS in one file)
 - `data.json`: a copy of my data at the time of the move (also embedded in `index.html`, see "Data")
 - `CLAUDE.md`: this file
+- `manifest.webmanifest`, `sw.js`, `icons/`: make it installable on the phone (PWA) and work offline. The icon is "life log." handwritten in beige on royal blue. `sw.js` loads the page network-first, so changes show up right away. Bump `CACHE` in `sw.js` if the icons change.
 
 ## Design rules (keep these)
 

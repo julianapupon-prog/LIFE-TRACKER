@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Life Log</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Nothing+You+Could+Do&family=Cormorant+Garamond:wght@500;600&display=swap"><style id="css">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Life Log</title><meta name="theme-color" content="#EBE4D1"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="life log"><meta name="apple-mobile-web-app-status-bar-style" content="default"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Nothing+You+Could+Do&family=Cormorant+Garamond:wght@500;600&display=swap"><style id="css">
 :root{--bg:#EBE4D1;--paper:#F4EFE1;--blue:#1F3FBF;--ink:#132a85;--soft:rgba(31,63,191,.12);--line:rgba(31,63,191,.35)}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--blue)}
@@ -128,10 +128,11 @@ function keepUI(){try{sessionStorage.setItem('ll-ui',JSON.stringify(UI))}catch(e
 /* ---------- saving ---------- */
 var ART=null,ASSETS=null,capDone=false,dirty=false,timer=null,MODAL=false;
 var CSS=$('#css').textContent, JS=$('#appjs').textContent;
+var PWA='<meta name="theme-color" content="#EBE4D1"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="life log"><meta name="apple-mobile-web-app-status-bar-style" content="default">';
 var FONTS='<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Nothing+You+Could+Do&family=Cormorant+Garamond:wght@500;600&display=swap">';
 function buildDoc(){
   var json=JSON.stringify(S).replace(/</g,'\\u003c');
-  return '<!DOCTYPE html>\n<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Life Log</title>'+FONTS+'<style id="css">'+CSS+'</style></head><body><div id="app"></div><div id="modal" hidden></div><script type="application/json" id="state">'+json+'<\/script><script id="appjs">'+JS+'<\/script></body></html>';
+  return '<!DOCTYPE html>\n<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Life Log</title>'+PWA+FONTS+'<style id="css">'+CSS+'</style></head><body><div id="app"></div><div id="modal" hidden></div><script type="application/json" id="state">'+json+'<\/script><script id="appjs">'+JS+'<\/script></body></html>';
 }
 function setStatus(t){var el=$('#status'); if(el) el.textContent=t;}
 function save(){
@@ -156,6 +157,8 @@ function flush(){
     dirty=true; setStatus('not saved — retrying'); setTimeout(flush,5000);
   });
 }
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)&&!(window.claude&&window.claude.use)){navigator.serviceWorker.register('sw.js').catch(function(){});}
+if(!(window.claude&&typeof window.claude.use==='function')) capDone=true;
 if(window.claude&&typeof window.claude.use==='function'){
   window.claude.use('artifact').then(function(a){ART=a;capDone=true;if(a){setStatus(dirty?'saving…':'saved ✓');if(dirty)schedule();}else setStatus('saved on this device');}).catch(function(){setStatus('saved on this device')});
   window.claude.use('assets').then(function(a){ASSETS=a}).catch(function(){});

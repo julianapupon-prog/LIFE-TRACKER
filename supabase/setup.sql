@@ -86,7 +86,7 @@ begin
     update pets set
       name = left(p_pet->>'name', 16), color = left(p_pet->>'color', 12),
       species = left(p_pet->>'species', 8),
-      home = case when length((p_pet->'home')::text) < 400 then p_pet->'home' end,
+      home = case when length((p_pet->'home')::text) < 3000 then p_pet->'home' end,
       stage = (p_pet->>'stage')::int, level = (p_pet->>'level')::int, xp = (p_pet->>'xp')::int,
       stats = p_pet->'stats', mood = left(p_pet->>'mood', 12), updated_at = now()
     where code = p_code;
@@ -94,7 +94,7 @@ begin
     insert into pets (code, secret_hash, name, color, species, home, stage, level, xp, stats, mood)
     values (p_code, encode(digest(p_secret, 'sha256'), 'hex'),
       left(p_pet->>'name', 16), left(p_pet->>'color', 12), left(p_pet->>'species', 8),
-      case when length((p_pet->'home')::text) < 400 then p_pet->'home' end,
+      case when length((p_pet->'home')::text) < 3000 then p_pet->'home' end,
       (p_pet->>'stage')::int, (p_pet->>'level')::int, (p_pet->>'xp')::int,
       p_pet->'stats', left(p_pet->>'mood', 12));
   end if;

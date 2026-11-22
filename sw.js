@@ -1,6 +1,6 @@
 // Offline support. The page itself is fetched network-first so updates show up
 // right away; everything else (icons, fonts) is served from cache when possible.
-var CACHE = 'lifelog-v3';
+var CACHE = 'lifelog-v4';
 var CORE = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
 
 self.addEventListener('install', function (e) {
